@@ -3,207 +3,369 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LUDO WARRIORS 3D</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LUDO WARRIORS 3D BATTLE</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101923;color:white;font-family:Arial;overflow:hidden}
-#game{width:100vw;height:100vh}
-#hud{position:fixed;top:10px;left:10px;right:10px;pointer-events:none}
-.panel{background:#101923dd;padding:12px;border-radius:12px}
-button{pointer-events:auto;border:0;padding:14px 20px;border-radius:12px;background:linear-gradient(135deg,#ffe29a,#d99b35);font-weight:bold}
-#roll{position:fixed;right:15px;top:15px}
-#info{position:fixed;left:10px;top:10px}
-#message{position:fixed;bottom:15px;left:10px;right:10px;text-align:center;background:#101923dd;padding:12px;border-radius:12px}
+body{margin:0;overflow:hidden;background:#091521;color:white;font-family:Arial}
+#game{position:fixed;inset:0}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{background:rgba(9,19,32,.9);border:1px solid #ffffff35;
+border-radius:14px;padding:10px 13px;backdrop-filter:blur(8px)}
+#top{position:absolute;top:10px;left:10px;right:10px;
+display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+#brand{color:#ffcf65;font-size:18px;font-weight:900}
+#turn{font-size:13px;margin-top:5px}
+#status{font-size:11px;color:#b9d0e4;margin-top:4px}
+button{pointer-events:auto;border:0;border-radius:12px;padding:13px 17px;
+font-weight:900;background:linear-gradient(135deg,#ffe9a6,#e99c29);
+color:#17202b;box-shadow:0 4px 0 #805019}
+#dice{font-size:25px;min-width:48px;text-align:center}
+#bottom{position:absolute;bottom:12px;left:10px;right:10px;
+display:flex;justify-content:space-between;gap:8px;align-items:end}
+#message{font-size:12px;max-width:65%;line-height:1.4}
+#scores{font-size:11px;line-height:1.8}
+#toast{position:absolute;top:22%;left:50%;transform:translateX(-50%);
+padding:13px 20px;background:#111d2eee;border:1px solid #fff4;
+border-radius:15px;font-weight:bold;opacity:0;transition:.2s;
+text-align:center;white-space:nowrap}
+@media(max-width:550px){
+ #brand{font-size:14px}
+ .panel{padding:8px}
+ button{padding:12px 11px;font-size:12px}
+ #message{font-size:10px}
+}
 </style>
 </head>
 <body>
-
 <div id="game"></div>
 <div id="hud">
- <div id="info" class="panel">
-  <b style="color:#f5c76b">⚔ LUDO WARRIORS 3D</b>
-  <div id="turn">Navbat: Qizil</div>
-  <div id="status">Zarni tashlang</div>
+ <div id="top">
+  <div class="panel">
+   <div id="brand">⚔ LUDO WARRIORS 3D</div>
+   <div id="turn">Navbat: Qizil</div>
+   <div id="status">Zar tashlang</div>
+  </div>
+  <div style="display:flex;gap:7px;align-items:center">
+   <div class="panel" id="dice">🎲</div>
+   <button id="roll">ZAR TASHLA</button>
+  </div>
  </div>
- <button id="roll">🎲 ZAR TASHLA</button>
- <div id="message">Jangchini tanlash uchun uni bosing.</div>
+ <div id="bottom">
+  <div class="panel" id="message">
+   Jangchini tanlang va jangni boshlang!
+   <br>🕳 Tuzoq · 🚀 Raketa · ⭐ Bonus
+  </div>
+  <div class="panel" id="scores"></div>
+ </div>
+ <div id="toast"></div>
 </div>
 
 <script type="module">
 import * as THREE from
 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
+const $=id=>document.getElementById(id);
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x101923);
+scene.background=new THREE.Color(0x101c29);
+scene.fog=new THREE.Fog(0x101c29,35,65);
 
-const camera=new THREE.PerspectiveCamera(
-45,innerWidth/innerHeight,0.1,100
-);
-camera.position.set(0,16,19);
+const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.1,100);
+camera.position.set(15,20,20);
 camera.lookAt(0,0,0);
 
-const renderer=new THREE.WebGLRenderer({antialias:true});
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.35;
+$("game").appendChild(renderer.domElement);
 
-document.getElementById("game").appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xc9e5ff,0x39432e,2.1));
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x354050,2));
+const sun=new THREE.DirectionalLight(0xffedca,3.5);
+sun.position.set(-10,18,12);
+sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-15;
+sun.shadow.camera.right=15;
+sun.shadow.camera.top=15;
+sun.shadow.camera.bottom=-15;
+scene.add(sun);
 
-const light=new THREE.DirectionalLight(0xffe0aa,3);
-light.position.set(-8,15,8);
-light.castShadow=true;
-scene.add(light);
+const blueLight=new THREE.PointLight(0x448cff,35,35);
+blueLight.position.set(8,8,-8);
+scene.add(blueLight);
+
+const mat=(color,roughness=.5,metalness=.1)=>
+ new THREE.MeshStandardMaterial({color,roughness,metalness});
 
 const colors=[
- {name:"Qizil",color:0xe83d45,start:0},
- {name:"Yashil",color:0x24c779,start:13},
+ {name:"Qizil",color:0xe83c42,start:0},
+ {name:"Yashil",color:0x22c879,start:13},
  {name:"Ko‘k",color:0x398cff,start:26},
- {name:"Sariq",color:0xf5c542,start:39}
+ {name:"Sariq",color:0xf4c542,start:39}
 ];
 
-const material=(c)=>new THREE.MeshStandardMaterial({
- color:c,roughness:.42,metalness:.25
-});
-
+const gold=mat(0xffd16b,.25,.8);
 const floor=new THREE.Mesh(
  new THREE.PlaneGeometry(100,100),
- material(0x172432)
+ mat(0x182a38,.9)
 );
 floor.rotation.x=-Math.PI/2;
-floor.position.y=-.5;
+floor.position.y=-.7;
 floor.receiveShadow=true;
 scene.add(floor);
 
+// DOSKA
 const board=new THREE.Mesh(
- new THREE.BoxGeometry(12,.4,12),
- material(0x35485b)
+ new THREE.BoxGeometry(14,.65,14),
+ mat(0x263d50,.35,.25)
 );
-board.position.y=-.2;
+board.position.y=-.3;
 board.castShadow=true;
 board.receiveShadow=true;
 scene.add(board);
 
-// 52 katakli yo‘l
+// Doska chetidagi oltin chiziqlar
+const edgeMat=mat(0xd2a44e,.25,.7);
+for(let i=0;i<4;i++){
+ const edge=new THREE.Mesh(
+  new THREE.BoxGeometry(14.05,.08,.08),edgeMat);
+ edge.position.set(0,.05,i<2?-7:7);
+ if(i>=2){edge.rotation.y=Math.PI/2;edge.position.set(i===2?-7:7,.05,0);}
+ scene.add(edge);
+}
+
+// 52 katakli to‘g‘ri yo‘lak
 const path=[];
 for(let x=-6;x<=6;x++)path.push([x,-6]);
 for(let z=-5;z<=6;z++)path.push([6,z]);
 for(let x=5;x>=-6;x--)path.push([x,6]);
 for(let z=5;z>=-5;z--)path.push([-6,z]);
 
+const traps=[5,18,31,44];
+const rockets=[9,22,35,48];
+const stars=[2,15,28,41];
+
+const tileMeshes=[];
 path.forEach((p,i)=>{
+ let color=0xd9e1e9;
+ if(traps.includes(i))color=0x9e3036;
+ if(rockets.includes(i))color=0x2778c7;
+ if(stars.includes(i))color=0xd6a22e;
+
  const tile=new THREE.Mesh(
-  new THREE.BoxGeometry(.86,.13,.86),
-  material(i%13===0?0xf0c45b:0xd5d8dc)
+  new THREE.BoxGeometry(.91,.17,.91),
+  mat(color,.35,.25)
  );
- tile.position.set(p[0],.06,p[1]);
- tile.receiveShadow=true;
+ tile.position.set(p[0],.13,p[1]);
  tile.castShadow=true;
+ tile.receiveShadow=true;
  scene.add(tile);
+ tileMeshes.push(tile);
+
+ // Maxsus belgilar
+ if(traps.includes(i)){
+  const m=new THREE.Mesh(
+   new THREE.TorusGeometry(.25,.07,8,20),
+   mat(0xff4d43,.3,.5)
+  );
+  m.position.set(p[0],.28,p[1]);
+  scene.add(m);
+  const spikes=new THREE.Mesh(
+   new THREE.ConeGeometry(.18,.3,8),
+   mat(0xff8b62)
+  );
+  spikes.position.set(p[0],.42,p[1]);
+  scene.add(spikes);
+ }
+
+ if(rockets.includes(i)){
+  const r=new THREE.Group();
+  const body=new THREE.Mesh(
+   new THREE.CylinderGeometry(.11,.11,.38,12),
+   mat(0xf2e7d0,.3,.5)
+  );
+  r.add(body);
+  const nose=new THREE.Mesh(
+   new THREE.ConeGeometry(.12,.2,12),
+   mat(0xe94b37)
+  );
+  nose.position.y=.28;r.add(nose);
+  r.position.set(p[0],.48,p[1]);
+  scene.add(r);
+ }
+
+ if(stars.includes(i)){
+  const starShape=new THREE.Shape();
+  for(let k=0;k<10;k++){
+   const a=Math.PI*k/5-Math.PI/2;
+   const radius=k%2===0?.29:.13;
+   const x=Math.cos(a)*radius,z=Math.sin(a)*radius;
+   if(k===0)starShape.moveTo(x,z);
+   else starShape.lineTo(x,z);
+  }
+  starShape.closePath();
+  const geo=new THREE.ExtrudeGeometry(starShape,{
+   depth:.07,bevelEnabled:true,bevelThickness:.03,bevelSize:.02
+  });
+  const star=new THREE.Mesh(geo,gold);
+  star.rotation.x=-Math.PI/2;
+  star.position.set(p[0],.28,p[1]);
+  scene.add(star);
+ }
 });
 
-// Jamoalar uylari
+// Jamoa uylari
 const homes=[
- [-4.3,-4.3],[4.3,-4.3],
- [4.3,4.3],[-4.3,4.3]
+ [-4.4,-4.4],[4.4,-4.4],
+ [4.4,4.4],[-4.4,4.4]
 ];
 
 homes.forEach((p,i)=>{
  const pad=new THREE.Mesh(
-  new THREE.BoxGeometry(3, .2,3),
-  material(colors[i].color)
+  new THREE.BoxGeometry(3.2,.24,3.2),
+  mat(colors[i].color,.32,.2)
  );
  pad.position.set(p[0],.12,p[1]);
+ pad.castShadow=true;
  scene.add(pad);
+
+ const border=new THREE.Mesh(
+  new THREE.BoxGeometry(2.7,.1,2.7),gold
+ );
+ border.position.set(p[0],.27,p[1]);
+ scene.add(border);
+
+ const inner=new THREE.Mesh(
+  new THREE.BoxGeometry(2.48,.1,2.48),
+  mat(0x263746)
+ );
+ inner.position.set(p[0],.34,p[1]);
+ scene.add(inner);
 });
 
-// Jangchi yaratish
-function createWarrior(ci){
- const g=new THREE.Group();
- const armor=material(colors[ci].color);
- const gold=material(0xe8bd5e);
- const dark=material(0x252d39);
- const skin=material(0xc58e68);
+// MARKAZIY MARRA
+const finish=new THREE.Mesh(
+ new THREE.CylinderGeometry(1.35,1.55,.3,8),
+ mat(0xffcf64,.25,.7)
+);
+finish.position.y=.22;
+scene.add(finish);
 
- const body=new THREE.Mesh(
-  new THREE.CylinderGeometry(.22,.3,.65,12),armor
+const gem=new THREE.Mesh(
+ new THREE.OctahedronGeometry(.65),
+ mat(0xffe59b,.18,.8)
+);
+gem.position.y=.8;
+scene.add(gem);
+
+const labelMat=mat(0xffd36b,.25,.5);
+
+// JANGCHI MODELI
+function createWarrior(ci){
+ const root=new THREE.Group();
+ const armor=mat(colors[ci].color,.28,.55);
+ const dark=mat(0x26313b,.4,.5);
+ const skin=mat(0xc88f6a);
+ const helmet=mat(0xd9b25b,.2,.8);
+
+ const torso=new THREE.Mesh(
+  new THREE.CylinderGeometry(.24,.31,.64,16),armor
  );
- body.position.y=.75;
- g.add(body);
+ torso.position.y=.83;
+ root.add(torso);
 
  const head=new THREE.Mesh(
-  new THREE.SphereGeometry(.22,16,16),skin
+  new THREE.SphereGeometry(.22,24,18),skin
  );
- head.position.y=1.25;
- g.add(head);
+ head.position.y=1.32;
+ root.add(head);
 
- const helmet=new THREE.Mesh(
-  new THREE.SphereGeometry(.25,16,12),
-  gold
+ const helm=new THREE.Mesh(
+  new THREE.SphereGeometry(.255,24,16),helmet
  );
- helmet.scale.y=.7;
- helmet.position.y=1.36;
- g.add(helmet);
+ helm.scale.y=.65;
+ helm.position.y=1.43;
+ root.add(helm);
 
  const crest=new THREE.Mesh(
-  new THREE.ConeGeometry(.1,.35,8),gold
+  new THREE.ConeGeometry(.1,.4,8),mat(0x9d3038)
  );
- crest.position.y=1.57;
- g.add(crest);
+ crest.position.y=1.68;
+ root.add(crest);
 
- for(const side of [-1,1]){
-  const arm=new THREE.Mesh(
-   new THREE.CylinderGeometry(.07,.09,.4,8),armor
+ const legs=[];
+ const arms=[];
+ for(let side of [-1,1]){
+  const leg=new THREE.Group();
+  leg.position.set(side*.13,.48,0);
+  const lm=new THREE.Mesh(
+   new THREE.CylinderGeometry(.09,.12,.43,12),dark
   );
-  arm.position.set(side*.3,.85,0);
-  arm.rotation.z=side*.4;
-  g.add(arm);
+  lm.position.y=-.2;
+  leg.add(lm);
+  root.add(leg);
+  legs.push(leg);
 
-  const leg=new THREE.Mesh(
-   new THREE.CylinderGeometry(.09,.11,.35,8),dark
+  const arm=new THREE.Group();
+  arm.position.set(side*.28,1.05,0);
+  const am=new THREE.Mesh(
+   new THREE.CylinderGeometry(.075,.1,.42,12),armor
   );
-  leg.position.set(side*.13,.28,0);
-  g.add(leg);
+  am.position.y=-.18;
+  arm.add(am);
+  root.add(arm);
+  arms.push(arm);
  }
+
+ const shield=new THREE.Mesh(
+  new THREE.CylinderGeometry(.25,.25,.09,8),
+  gold
+ );
+ shield.rotation.x=Math.PI/2;
+ shield.position.set(-.43,.85,.08);
+ root.add(shield);
 
  // Nayza
  const spear=new THREE.Group();
  const shaft=new THREE.Mesh(
-  new THREE.CylinderGeometry(.025,.035,1.15,8),
-  material(0x8b6037)
+  new THREE.CylinderGeometry(.025,.04,1.25,12),
+  mat(0x805b32,.35,.3)
  );
  shaft.position.y=.65;
  spear.add(shaft);
 
  const tip=new THREE.Mesh(
-  new THREE.ConeGeometry(.09,.27,6),gold
+  new THREE.ConeGeometry(.105,.32,8),
+  gold
  );
- tip.position.y=1.34;
+ tip.position.y=1.42;
  spear.add(tip);
- spear.position.set(.35,.1,0);
- g.add(spear);
- g.userData.spear=spear;
+ spear.position.set(.37,.05,0);
+ root.add(spear);
 
  const base=new THREE.Mesh(
-  new THREE.CylinderGeometry(.34,.34,.12,24),dark
+  new THREE.CylinderGeometry(.34,.34,.12,24),
+  dark
  );
  base.position.y=.06;
- g.add(base);
+ root.add(base);
 
- g.traverse(o=>{
-  if(o.isMesh){
-   o.castShadow=true;
-   o.receiveShadow=true;
-  }
+ root.userData={
+  team:ci,legs,arms,spear,walking:false
+ };
+
+ root.traverse(o=>{
+  if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}
  });
 
- g.userData.team=ci;
- return g;
+ return root;
 }
 
 const warriors=[];
@@ -212,7 +374,6 @@ const states=[];
 for(let ci=0;ci<4;ci++){
  warriors[ci]=[];
  states[ci]=[];
-
  for(let j=0;j<4;j++){
   const w=createWarrior(ci);
   scene.add(w);
@@ -224,260 +385,344 @@ for(let ci=0;ci<4;ci++){
 function homePosition(ci,j){
  const p=homes[ci];
  return [
-  p[0]+(j%2?.65:-.65),
-  p[1]+(j<2?-.65:.65)
+  p[0]+(j%2?.7:-.7),
+  p[1]+(j<2?-.7:.7)
  ];
 }
 
-function globalIndex(ci,step){
- return (colors[ci].start+step)%52;
+function globalIndex(ci,s){
+ return (colors[ci].start+s)%52;
+}
+
+function finishLane(ci,step){
+ const start=path[(colors[ci].start+51)%52];
+ const t=(step-51)/5;
+ return [
+  start[0]*(1-t),
+  start[1]*(1-t)
+ ];
+}
+
+function getPosition(ci,s,j){
+ if(s.step<0)return homePosition(ci,j);
+ if(s.step>=56)return [0,0];
+ if(s.step>=52)return finishLane(ci,s.step);
+ return path[globalIndex(ci,s.step)];
 }
 
 function updatePositions(){
  for(let ci=0;ci<4;ci++){
   for(let j=0;j<4;j++){
    const s=states[ci][j];
-   const w=warriors[ci][j];
-
-   if(s.step<0){
-    const p=homePosition(ci,j);
-    w.position.set(p[0],.22,p[1]);
-   }else{
-    const p=path[globalIndex(ci,s.step)];
-    w.position.set(p[0],.22,p[1]);
-   }
+   const p=getPosition(ci,s,j);
+   warriors[ci][j].position.set(p[0],.22,p[1]);
   }
  }
 }
 updatePositions();
 
-let current=0;
-let dice=null;
-let busy=false;
+// Ovozlar: tashqi audio fayl talab qilinmaydi
+let audio=null;
+function sound(type){
+ try{
+  audio ||= new (window.AudioContext||window.webkitAudioContext)();
+  if(audio.state==="suspended")audio.resume();
+  const osc=audio.createOscillator();
+  const gain=audio.createGain();
+  osc.connect(gain);gain.connect(audio.destination);
+  const now=audio.currentTime;
+  const cfg={
+   dice:[220,.12],walk:[110,.055],spear:[95,.18],
+   boom:[65,.55],rocket:[440,.35],star:[880,.3],trap:[75,.4]
+  }[type]||[200,.1];
+  osc.frequency.setValueAtTime(cfg[0],now);
+  osc.frequency.exponentialRampToValueAtTime(
+   Math.max(30,cfg[0]*.35),now+cfg[1]
+  );
+  gain.gain.setValueAtTime(.001,now);
+  gain.gain.linearRampToValueAtTime(.16,now+.015);
+  gain.gain.exponentialRampToValueAtTime(.001,now+cfg[1]);
+  osc.start(now);osc.stop(now+cfg[1]+.02);
+ }catch(e){}
+}
 
-const turn=document.getElementById("turn");
-const status=document.getElementById("status");
-const message=document.getElementById("message");
-const rollButton=document.getElementById("roll");
+let current=0,dice=null,busy=false;
+const all=warriors.flat();
+const ray=new THREE.Raycaster();
+const pointer=new THREE.Vector2();
 
-function notify(t){
- message.textContent=t;
+function toast(t){
+ $("toast").textContent=t;
+ $("toast").style.opacity=1;
+ clearTimeout(toast.timer);
+ toast.timer=setTimeout(()=>$("toast").style.opacity=0,1700);
 }
 
 function updateUI(){
- turn.textContent="Navbat: "+colors[current].name;
- status.textContent=dice===null?"Zarni tashlang":"Zar: "+dice+" — jangchini bosing";
- rollButton.disabled=dice!==null||busy;
+ $("turn").textContent="Navbat: "+colors[current].name;
+ $("status").textContent=dice===null?"Zarni tashlang":"Zar: "+dice+" — jangchini tanlang";
+ $("roll").disabled=dice!==null||busy;
+ $("scores").innerHTML=colors.map((c,i)=>
+  `<span style="color:#${c.color.toString(16)}">${c.name}: ${states[i].filter(s=>s.done).length}/4</span><br>`
+ ).join("");
 }
 
-function nextTurn(){
- dice=null;
- current=(current+1)%4;
- updateUI();
-}
-
-rollButton.onclick=()=>{
- if(dice!==null||busy)return;
-
- dice=1+Math.floor(Math.random()*6);
- notify("Zar: "+dice);
-
- const possible=states[current].some(s=>
-  s.step<0?dice===6:!s.done&&s.step+dice<=56
- );
-
- updateUI();
-
- if(!possible){
-  notify("Yurish yo‘q. Keyingi jamoa!");
-  setTimeout(nextTurn,900);
- }
-};
-
-// Portlash effekti
-function explosion(pos){
- const group=new THREE.Group();
- group.position.copy(pos);
- scene.add(group);
-
- const particles=[];
- const gold=material(0xffc34c);
-
- for(let i=0;i<24;i++){
-  const m=new THREE.Mesh(
-   new THREE.SphereGeometry(.08,8,8),gold
-  );
-  group.add(m);
-  particles.push({
-   mesh:m,
-   velocity:new THREE.Vector3(
-    (Math.random()-.5)*.2,
-    Math.random()*.2,
-    (Math.random()-.5)*.2
-   )
-  });
- }
-
- const start=performance.now();
-
- function animate(now){
-  const t=(now-start)/650;
-  particles.forEach(p=>{
-   p.mesh.position.add(p.velocity);
-   p.mesh.scale.setScalar(Math.max(.01,1-t));
-  });
-
-  if(t<1)requestAnimationFrame(animate);
-  else scene.remove(group);
- }
- requestAnimationFrame(animate);
-}
-
-function capture(ci,j,callback){
- const w=warriors[ci][j];
- const start=performance.now();
- const original=w.position.clone();
-
- function animate(now){
-  const t=Math.min(1,(now-start)/550);
-  w.position.y=.22+Math.sin(t*Math.PI)*.9;
-  w.userData.spear.rotation.z=Math.sin(t*Math.PI)*1.1;
-
-  if(t<1)requestAnimationFrame(animate);
-  else{
-   w.userData.spear.rotation.z=0;
-   explosion(original);
-   states[ci][j].step=-1;
-   updatePositions();
-   callback();
-  }
- }
- requestAnimationFrame(animate);
-}
-
-function moveWarrior(ci,j){
- if(busy||dice===null||ci!==current)return;
-
- const s=states[ci][j];
-
- if(s.step<0&&dice!==6){
-  notify("Uyidan chiqish uchun 6 kerak!");
-  return;
- }
-
- if(s.step>=0&&s.step+dice>56){
-  notify("Bu yurish mumkin emas!");
-  return;
- }
-
- const old=s.step;
- const steps=old<0?0:dice;
- const target=old<0?0:old+dice;
- const w=warriors[ci][j];
-
- busy=true;
- const from=w.position.clone();
- const dest=path[globalIndex(ci,target)];
- const to=new THREE.Vector3(dest[0],.22,dest[1]);
- const duration=Math.max(300,Math.abs(target-(old<0?0:old))*110);
- const start=performance.now();
-
- function animate(now){
-  const t=Math.min(1,(now-start)/duration);
-  w.position.lerpVectors(from,to,t);
-  w.position.y=.22+Math.abs(Math.sin(t*Math.PI*8))*.1;
-
-  if(t<1)requestAnimationFrame(animate);
-  else{
-   w.position.copy(to);
-   s.step=target;
-
-   if(target>=56){
-    s.done=true;
-    w.position.set(0,.4,0);
-    busy=false;
-    notify(colors[ci].name+" jamoasi bir jangchini marraga yetkazdi!");
-    finish();
-    return;
-   }
-
-   const idx=globalIndex(ci,target);
-   let victim=null;
-
-   for(let oi=0;oi<4;oi++){
-    if(oi===ci)continue;
-    for(let oj=0;oj<4;oj++){
-     const os=states[oi][oj];
-     if(os.step>=0&&!os.done&&globalIndex(oi,os.step)===idx){
-      victim={ci:oi,j:oj};
-      break;
-     }
-    }
-    if(victim)break;
-   }
-
-   if(victim){
-    notify("⚔ Nayzali jang! Raqib uyiga qaytdi!");
-    capture(victim.ci,victim.j,()=>{
-     busy=false;
-     finish();
-    });
-   }else{
-    busy=false;
-    finish();
-   }
-  }
- }
- requestAnimationFrame(animate);
-}
-
-function finish(){
- const won=states[current].every(s=>s.done);
- if(won){
-  notify("🏆 "+colors[current].name+" jamoasi g‘alaba qozondi!");
-  dice=null;
-  updateUI();
-  return;
- }
- const extra=dice===6;
+function nextTurn(extra=false){
  dice=null;
  if(!extra)current=(current+1)%4;
  updateUI();
 }
 
-const raycaster=new THREE.Raycaster();
-const pointer=new THREE.Vector2();
-const all=warriors.flat();
+$("roll").onclick=()=>{
+ if(busy||dice!==null)return;
+ sound("dice");
+ dice=1+Math.floor(Math.random()*6);
+ $("dice").textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
+
+ const possible=states[current].some(s=>
+  !s.done&&(s.step<0?dice===6:s.step+dice<=56)
+ );
+ updateUI();
+ if(!possible){
+  toast("Yurish mumkin emas!");
+  setTimeout(()=>nextTurn(),800);
+ }
+};
+
+function explosion(pos){
+ sound("boom");
+ const group=new THREE.Group();
+ group.position.copy(pos);
+ scene.add(group);
+ const particles=[];
+ const colors2=[0xffd35a,0xff772c,0xffffff];
+ for(let i=0;i<32;i++){
+  const m=new THREE.Mesh(
+   new THREE.SphereGeometry(.08+Math.random()*.07,8,8),
+   mat(colors2[i%3])
+  );
+  group.add(m);
+  particles.push({
+   mesh:m,
+   v:new THREE.Vector3(
+    (Math.random()-.5)*.23,
+    Math.random()*.24,
+    (Math.random()-.5)*.23
+   )
+  });
+ }
+ const start=performance.now();
+ function tick(now){
+  const t=(now-start)/650;
+  particles.forEach(p=>{
+   p.mesh.position.add(p.v);
+   p.mesh.scale.setScalar(Math.max(.01,1-t));
+  });
+  if(t<1)requestAnimationFrame(tick);
+  else scene.remove(group);
+ }
+ requestAnimationFrame(tick);
+}
+
+function capture(ci,j,done){
+ const w=warriors[ci][j];
+ const start=performance.now();
+ const spear=w.userData.spear;
+ sound("spear");
+
+ function tick(now){
+  const t=Math.min(1,(now-start)/650);
+  // Nayza oldinga sanchiladi va qaytadi
+  spear.position.z=-Math.sin(t*Math.PI)*.65;
+  spear.rotation.x=Math.sin(t*Math.PI)*.45;
+  w.position.y=.22+Math.sin(t*Math.PI)*.4;
+
+  if(t<1)requestAnimationFrame(tick);
+  else{
+   spear.position.z=0;
+   spear.rotation.x=0;
+   w.position.y=.22;
+   explosion(w.position.clone());
+   states[ci][j].step=-1;
+   updatePositions();
+   done();
+  }
+ }
+ requestAnimationFrame(tick);
+}
+
+function animateWalk(w,from,to,done){
+ const start=performance.now();
+ const duration=170;
+ const {legs,arms}=w.userData;
+ sound("walk");
+
+ function tick(now){
+  const t=Math.min(1,(now-start)/duration);
+  w.position.lerpVectors(from,to,t);
+  w.position.y=.22+Math.abs(Math.sin(t*Math.PI*2))*.13;
+  legs.forEach((l,i)=>l.rotation.x=Math.sin(t*Math.PI*4+i*Math.PI)*.65);
+  arms.forEach((a,i)=>a.rotation.x=Math.sin(t*Math.PI*4+i*Math.PI)*.4);
+
+  if(t<1)requestAnimationFrame(tick);
+  else{
+   w.position.copy(to);
+   w.position.y=.22;
+   legs.forEach(l=>l.rotation.x=0);
+   arms.forEach(a=>a.rotation.x=0);
+   done();
+  }
+ }
+ requestAnimationFrame(tick);
+}
+
+function moveWarrior(ci,j){
+ if(busy||dice===null||ci!==current)return;
+ const s=states[ci][j];
+ if(s.done)return;
+
+ if(s.step<0&&dice!==6){
+  toast("Jangchini chiqarish uchun 6 kerak!");
+  return;
+ }
+ if(s.step>=0&&s.step+dice>56){
+  toast("Aniq son kerak!");
+  return;
+ }
+
+ busy=true;
+ const amount=s.step<0?0:dice;
+ const target=s.step<0?0:s.step+amount;
+
+ let count=s.step<0?1:amount;
+ let step=s.step<0?-1:s.step;
+ const w=warriors[ci][j];
+
+ function oneStep(){
+  if(step<target){
+   step++;
+   const pos=step>=52?finishLane(ci,step):path[globalIndex(ci,step)];
+   const from=w.position.clone();
+   const to=new THREE.Vector3(pos[0],.22,pos[1]);
+   animateWalk(w,from,to,oneStep);
+   return;
+  }
+
+  s.step=target;
+
+  if(target===56){
+   s.done=true;
+   w.position.set(0,.3,0);
+   busy=false;
+   toast("🏆 Jangchi marraga yetdi!");
+   const win=states[current].every(x=>x.done);
+   if(win){toast(colors[current].name+" g‘alaba qozondi!");dice=null;updateUI();}
+   else nextTurn(dice===6);
+   return;
+  }
+
+  const idx=globalIndex(ci,target);
+  let victim=null;
+
+  for(let oi=0;oi<4;oi++){
+   if(oi===ci)continue;
+   for(let oj=0;oj<4;oj++){
+    const os=states[oi][oj];
+    if(os.step>=0&&os.step<52&&!os.done&&
+       globalIndex(oi,os.step)===idx){
+     victim={ci:oi,j:oj};break;
+    }
+   }
+   if(victim)break;
+  }
+
+  if(victim){
+   toast("⚔ Nayza zarbasi! Raqib uyiga qaytdi!");
+   capture(victim.ci,victim.j,finishMove);
+  }else finishMove();
+ }
+
+ function finishMove(){
+  busy=false;
+  const idx=globalIndex(ci,target);
+  const isTrap=traps.includes(idx);
+  const isRocket=rockets.includes(idx);
+  const isStar=stars.includes(idx);
+
+  if(isTrap){
+   sound("trap");
+   toast("🕳 Tuzoq! Jangchi uyiga qaytdi!");
+   s.step=-1;
+   updatePositions();
+  }else if(isRocket){
+   sound("rocket");
+   toast("🚀 Raketa! 5 qadam oldinga!");
+   const newStep=Math.min(56,s.step+5);
+   s.step=newStep;
+   if(newStep===56){
+    s.done=true;
+    w.position.set(0,.3,0);
+   }else{
+    const p=getPosition(ci,s,j);
+    w.position.set(p[0],.22,p[1]);
+   }
+  }else if(isStar){
+   sound("star");
+   toast("⭐ Yulduzcha! Yana bir yurish!");
+   updatePositions();
+   dice=null;
+   updateUI();
+   return;
+  }
+
+  updatePositions();
+  const win=states[current].every(x=>x.done);
+  if(win){
+   toast("🏆 "+colors[current].name+" g‘alaba qozondi!");
+   dice=null;
+   updateUI();
+  }else{
+   const extra=dice===6;
+   nextTurn(extra);
+  }
+ }
+
+ oneStep();
+}
 
 renderer.domElement.addEventListener("pointerdown",e=>{
+ if(busy||dice===null)return;
  const rect=renderer.domElement.getBoundingClientRect();
- pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
- pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
- raycaster.setFromCamera(pointer,camera);
- const hits=raycaster.intersectObjects(all,true);
+ pointer.x=(e.clientX-rect.left)/rect.width*2-1;
+ pointer.y=-(e.clientY-rect.top)/rect.height*2+1;
+ ray.setFromCamera(pointer,camera);
+ const hits=ray.intersectObjects(all,true);
  if(!hits.length)return;
-
  let node=hits[0].object;
  while(node&&!all.includes(node))node=node.parent;
-
  if(node){
   const n=all.indexOf(node);
   moveWarrior(Math.floor(n/4),n%4);
  }
 });
 
+// Kamera va ekran
 function resize(){
  camera.aspect=innerWidth/innerHeight;
- camera.position.y=innerWidth<650?19:16;
- camera.position.z=innerWidth<650?22:19;
+ camera.position.set(15,20,innerWidth<650?24:20);
  camera.lookAt(0,0,0);
  camera.updateProjectionMatrix();
  renderer.setSize(innerWidth,innerHeight);
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 }
 addEventListener("resize",resize);
 
+const clock=new THREE.Clock();
 function render(){
  requestAnimationFrame(render);
+ const t=clock.getElapsedTime();
+ gem.rotation.y=t*.6;
+ gem.position.y=.8+Math.sin(t*2)*.12;
  renderer.render(scene,camera);
 }
 updateUI();
