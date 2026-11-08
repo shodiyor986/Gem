@@ -3,79 +3,119 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>LUDO WARRIORS 3D BATTLE</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#091521;color:white;font-family:Arial}
+body{
+ margin:0;overflow:hidden;background:#101923;
+ color:white;font-family:Arial,sans-serif
+}
 #game{position:fixed;inset:0}
 canvas{display:block}
 #hud{position:fixed;inset:0;pointer-events:none}
-.panel{background:rgba(9,19,32,.9);border:1px solid #ffffff35;
-border-radius:14px;padding:10px 13px;backdrop-filter:blur(8px)}
-#top{position:absolute;top:10px;left:10px;right:10px;
-display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
-#brand{color:#ffcf65;font-size:18px;font-weight:900}
+.panel{
+ background:rgba(8,17,29,.9);
+ border:1px solid #ffffff35;
+ border-radius:13px;padding:10px 13px;
+ backdrop-filter:blur(8px)
+}
+#top{
+ position:absolute;top:10px;left:10px;right:10px;
+ display:flex;justify-content:space-between;
+ align-items:flex-start;gap:8px
+}
+#brand{font-size:17px;font-weight:900;color:#ffcf66}
 #turn{font-size:13px;margin-top:5px}
-#status{font-size:11px;color:#b9d0e4;margin-top:4px}
-button{pointer-events:auto;border:0;border-radius:12px;padding:13px 17px;
-font-weight:900;background:linear-gradient(135deg,#ffe9a6,#e99c29);
-color:#17202b;box-shadow:0 4px 0 #805019}
+#status{font-size:11px;color:#c5d5e5;margin-top:4px}
+button{
+ pointer-events:auto;border:0;border-radius:12px;
+ padding:13px 15px;font-weight:900;
+ color:#192333;background:linear-gradient(135deg,#ffe6a1,#e49b28);
+ cursor:pointer
+}
+button:disabled{opacity:.45}
+#right{display:flex;gap:7px;align-items:center}
 #dice{font-size:25px;min-width:48px;text-align:center}
-#bottom{position:absolute;bottom:12px;left:10px;right:10px;
-display:flex;justify-content:space-between;gap:8px;align-items:end}
-#message{font-size:12px;max-width:65%;line-height:1.4}
-#scores{font-size:11px;line-height:1.8}
-#toast{position:absolute;top:22%;left:50%;transform:translateX(-50%);
-padding:13px 20px;background:#111d2eee;border:1px solid #fff4;
-border-radius:15px;font-weight:bold;opacity:0;transition:.2s;
-text-align:center;white-space:nowrap}
+#bottom{
+ position:absolute;bottom:10px;left:10px;right:10px;
+ display:flex;justify-content:space-between;
+ align-items:end;gap:8px
+}
+#message{font-size:11px;line-height:1.5;max-width:65%}
+#scores{font-size:11px;line-height:1.7}
+#toast{
+ position:absolute;top:22%;left:50%;
+ transform:translateX(-50%);
+ background:#101d2dee;border:1px solid #ffffff40;
+ border-radius:14px;padding:12px 17px;
+ opacity:0;transition:.25s;font-weight:bold;
+ text-align:center;pointer-events:none
+}
 @media(max-width:550px){
- #brand{font-size:14px}
+ #brand{font-size:13px}
  .panel{padding:8px}
- button{padding:12px 11px;font-size:12px}
- #message{font-size:10px}
+ button{padding:12px 10px;font-size:11px}
+ #message,#scores{font-size:9px}
 }
 </style>
 </head>
+
 <body>
 <div id="game"></div>
+
 <div id="hud">
  <div id="top">
   <div class="panel">
    <div id="brand">⚔ LUDO WARRIORS 3D</div>
    <div id="turn">Navbat: Qizil</div>
-   <div id="status">Zar tashlang</div>
+   <div id="status">Zarni tashlang</div>
   </div>
-  <div style="display:flex;gap:7px;align-items:center">
+
+  <div id="right">
    <div class="panel" id="dice">🎲</div>
    <button id="roll">ZAR TASHLA</button>
   </div>
  </div>
+
  <div id="bottom">
   <div class="panel" id="message">
-   Jangchini tanlang va jangni boshlang!
-   <br>🕳 Tuzoq · 🚀 Raketa · ⭐ Bonus
+   Jangchini bosing va yurishni boshlang.
+   <br>🕳 Tuzoq · 🚀 Raketa · ⭐ Yulduzcha
   </div>
   <div class="panel" id="scores"></div>
  </div>
+
  <div id="toast"></div>
 </div>
 
 <script type="module">
+
 import * as THREE from
 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-const $=id=>document.getElementById(id);
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x101c29);
-scene.fog=new THREE.Fog(0x101c29,35,65);
+/* =========================
+   1. SAHNA VA KAMERA
+========================= */
 
-const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.1,100);
-camera.position.set(15,20,20);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x142333);
+scene.fog=new THREE.Fog(0x142333,45,90);
+
+const camera=new THREE.PerspectiveCamera(
+ 38,innerWidth/innerHeight,.1,150
+);
+
+// Kamera doskaning yuqori burchagidan qaraydi
+camera.position.set(17,32,25);
 camera.lookAt(0,0,0);
 
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"high-performance"});
+const renderer=new THREE.WebGLRenderer({
+ antialias:true,
+ powerPreference:"high-performance"
+});
+
 renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.shadowMap.enabled=true;
@@ -83,650 +123,1049 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.35;
-$("game").appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xc9e5ff,0x39432e,2.1));
+document.getElementById("game").appendChild(renderer.domElement);
 
-const sun=new THREE.DirectionalLight(0xffedca,3.5);
-sun.position.set(-10,18,12);
+/* =========================
+   2. YORUG'LIK
+========================= */
+
+scene.add(new THREE.HemisphereLight(
+ 0xd8eaff,0x34412e,2.2
+));
+
+const sun=new THREE.DirectionalLight(0xffe6bd,3.5);
+sun.position.set(-12,25,15);
 sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);
-sun.shadow.camera.left=-15;
-sun.shadow.camera.right=15;
-sun.shadow.camera.top=15;
-sun.shadow.camera.bottom=-15;
+sun.shadow.camera.left=-20;
+sun.shadow.camera.right=20;
+sun.shadow.camera.top=20;
+sun.shadow.camera.bottom=-20;
 scene.add(sun);
 
-const blueLight=new THREE.PointLight(0x448cff,35,35);
-blueLight.position.set(8,8,-8);
+const blueLight=new THREE.PointLight(0x398bff,35,40);
+blueLight.position.set(8,9,-8);
 scene.add(blueLight);
 
-const mat=(color,roughness=.5,metalness=.1)=>
- new THREE.MeshStandardMaterial({color,roughness,metalness});
+const goldLight=new THREE.PointLight(0xffb83d,20,25);
+goldLight.position.set(-8,7,8);
+scene.add(goldLight);
+
+/* =========================
+   3. MATERIALLAR
+========================= */
+
+function material(color,rough=.45,metal=.15){
+ return new THREE.MeshStandardMaterial({
+  color,
+  roughness:rough,
+  metalness:metal
+ });
+}
 
 const colors=[
- {name:"Qizil",color:0xe83c42,start:0},
- {name:"Yashil",color:0x22c879,start:13},
+ {name:"Qizil",color:0xe83c45,start:0},
+ {name:"Yashil",color:0x25c878,start:13},
  {name:"Ko‘k",color:0x398cff,start:26},
- {name:"Sariq",color:0xf4c542,start:39}
+ {name:"Sariq",color:0xf5c542,start:39}
 ];
 
-const gold=mat(0xffd16b,.25,.8);
 const floor=new THREE.Mesh(
- new THREE.PlaneGeometry(100,100),
- mat(0x182a38,.9)
+ new THREE.PlaneGeometry(150,150),
+ material(0x172c3b,.9)
 );
 floor.rotation.x=-Math.PI/2;
-floor.position.y=-.7;
+floor.position.y=-.75;
 floor.receiveShadow=true;
 scene.add(floor);
 
-// DOSKA
-const board=new THREE.Mesh(
- new THREE.BoxGeometry(14,.65,14),
- mat(0x263d50,.35,.25)
-);
-board.position.y=-.3;
-board.castShadow=true;
-board.receiveShadow=true;
+/* =========================
+   4. DOSKA
+========================= */
+
+const board=new THREE.Group();
 scene.add(board);
 
-// Doska chetidagi oltin chiziqlar
-const edgeMat=mat(0xd2a44e,.25,.7);
+const boardBase=new THREE.Mesh(
+ new THREE.BoxGeometry(14.8,.65,14.8),
+ material(0x34495d,.32,.3)
+);
+boardBase.position.y=-.28;
+boardBase.castShadow=true;
+boardBase.receiveShadow=true;
+board.add(boardBase);
+
+// Doska chetidagi oltin bezak
+const edgeMat=material(0xe0b75e,.25,.75);
+
 for(let i=0;i<4;i++){
  const edge=new THREE.Mesh(
-  new THREE.BoxGeometry(14.05,.08,.08),edgeMat);
- edge.position.set(0,.05,i<2?-7:7);
- if(i>=2){edge.rotation.y=Math.PI/2;edge.position.set(i===2?-7:7,.05,0);}
- scene.add(edge);
+  new THREE.BoxGeometry(14.9,.09,.09),edgeMat
+ );
+
+ if(i<2){
+  edge.position.set(0,.08,i===0?-7.4:7.4);
+ }else{
+  edge.rotation.y=Math.PI/2;
+  edge.position.set(i===2?-7.4:7.4,.08,0);
+ }
+
+ board.add(edge);
 }
 
-// 52 katakli to‘g‘ri yo‘lak
+/* =========================
+   5. 52 TA YO'LAK KATAGI
+========================= */
+
+// 13 tadan 4 tomon = 52 katak
 const path=[];
-for(let x=-6;x<=6;x++)path.push([x,-6]);
-for(let z=-5;z<=6;z++)path.push([6,z]);
-for(let x=5;x>=-6;x--)path.push([x,6]);
-for(let z=5;z>=-5;z--)path.push([-6,z]);
+
+for(let side=0;side<4;side++){
+ for(let i=0;i<13;i++){
+  const t=-6+(12*i/13);
+
+  if(side===0)path.push([t,-6]);
+  if(side===1)path.push([6,t]);
+  if(side===2)path.push([-t,6]);
+  if(side===3)path.push([-6,-t]);
+ }
+}
 
 const traps=[5,18,31,44];
 const rockets=[9,22,35,48];
 const stars=[2,15,28,41];
 
-const tileMeshes=[];
+const tileMat=material(0xe4e9ed,.45,.15);
+
 path.forEach((p,i)=>{
- let color=0xd9e1e9;
- if(traps.includes(i))color=0x9e3036;
- if(rockets.includes(i))color=0x2778c7;
- if(stars.includes(i))color=0xd6a22e;
+ let color=0xe0e5e9;
+
+ if(traps.includes(i))color=0x982c36;
+ if(rockets.includes(i))color=0x2779cf;
+ if(stars.includes(i))color=0xe7b83c;
 
  const tile=new THREE.Mesh(
-  new THREE.BoxGeometry(.91,.17,.91),
-  mat(color,.35,.25)
+  new THREE.BoxGeometry(.9,.17,.9),
+  material(color,.32,.2)
  );
+
  tile.position.set(p[0],.13,p[1]);
  tile.castShadow=true;
  tile.receiveShadow=true;
- scene.add(tile);
- tileMeshes.push(tile);
+ board.add(tile);
 
- // Maxsus belgilar
+ // Tuzoq belgisi
  if(traps.includes(i)){
-  const m=new THREE.Mesh(
-   new THREE.TorusGeometry(.25,.07,8,20),
-   mat(0xff4d43,.3,.5)
+  const trap=new THREE.Mesh(
+   new THREE.TorusGeometry(.24,.075,10,24),
+   material(0xff6252,.3,.5)
   );
-  m.position.set(p[0],.28,p[1]);
-  scene.add(m);
-  const spikes=new THREE.Mesh(
-   new THREE.ConeGeometry(.18,.3,8),
-   mat(0xff8b62)
-  );
-  spikes.position.set(p[0],.42,p[1]);
-  scene.add(spikes);
+  trap.position.set(p[0],.27,p[1]);
+  board.add(trap);
  }
 
+ // Raketa belgisi
  if(rockets.includes(i)){
-  const r=new THREE.Group();
+  const rocket=new THREE.Group();
+
   const body=new THREE.Mesh(
-   new THREE.CylinderGeometry(.11,.11,.38,12),
-   mat(0xf2e7d0,.3,.5)
+   new THREE.CylinderGeometry(.11,.11,.42,12),
+   material(0xf0e6dc,.3,.4)
   );
-  r.add(body);
+
   const nose=new THREE.Mesh(
-   new THREE.ConeGeometry(.12,.2,12),
-   mat(0xe94b37)
+   new THREE.ConeGeometry(.13,.22,12),
+   material(0xe64a38)
   );
-  nose.position.y=.28;r.add(nose);
-  r.position.set(p[0],.48,p[1]);
-  scene.add(r);
+
+  nose.position.y=.3;
+  rocket.add(body,nose);
+  rocket.position.set(p[0],.48,p[1]);
+  board.add(rocket);
  }
 
+ // Yulduz belgisi
  if(stars.includes(i)){
-  const starShape=new THREE.Shape();
-  for(let k=0;k<10;k++){
-   const a=Math.PI*k/5-Math.PI/2;
-   const radius=k%2===0?.29:.13;
-   const x=Math.cos(a)*radius,z=Math.sin(a)*radius;
-   if(k===0)starShape.moveTo(x,z);
-   else starShape.lineTo(x,z);
-  }
-  starShape.closePath();
-  const geo=new THREE.ExtrudeGeometry(starShape,{
-   depth:.07,bevelEnabled:true,bevelThickness:.03,bevelSize:.02
-  });
-  const star=new THREE.Mesh(geo,gold);
-  star.rotation.x=-Math.PI/2;
-  star.position.set(p[0],.28,p[1]);
-  scene.add(star);
+  const star=new THREE.Mesh(
+   new THREE.OctahedronGeometry(.25),
+   material(0xffe06a,.2,.7)
+  );
+  star.position.set(p[0],.45,p[1]);
+  board.add(star);
  }
 });
 
-// Jamoa uylari
+/* =========================
+   6. JAMOA UYLARI
+========================= */
+
 const homes=[
- [-4.4,-4.4],[4.4,-4.4],
- [4.4,4.4],[-4.4,4.4]
+ [-4.5,-4.5],
+ [4.5,-4.5],
+ [4.5,4.5],
+ [-4.5,4.5]
 ];
 
 homes.forEach((p,i)=>{
  const pad=new THREE.Mesh(
-  new THREE.BoxGeometry(3.2,.24,3.2),
-  mat(colors[i].color,.32,.2)
+  new THREE.BoxGeometry(3.1,.24,3.1),
+  material(colors[i].color,.3,.25)
  );
+
  pad.position.set(p[0],.12,p[1]);
  pad.castShadow=true;
- scene.add(pad);
+ board.add(pad);
 
- const border=new THREE.Mesh(
-  new THREE.BoxGeometry(2.7,.1,2.7),gold
+ const inside=new THREE.Mesh(
+  new THREE.BoxGeometry(2.5,.13,2.5),
+  material(0x253544)
  );
- border.position.set(p[0],.27,p[1]);
- scene.add(border);
 
- const inner=new THREE.Mesh(
-  new THREE.BoxGeometry(2.48,.1,2.48),
-  mat(0x263746)
- );
- inner.position.set(p[0],.34,p[1]);
- scene.add(inner);
+ inside.position.set(p[0],.29,p[1]);
+ board.add(inside);
+
+ for(let j=0;j<4;j++){
+  const x=p[0]+(j%2?.65:-.65);
+  const z=p[1]+(j<2?-.65:.65);
+
+  const ring=new THREE.Mesh(
+   new THREE.CylinderGeometry(.4,.4,.09,24),
+   material(0xf1e6ce,.3,.4)
+  );
+
+  ring.position.set(x,.4,z);
+  board.add(ring);
+ }
 });
 
-// MARKAZIY MARRA
-const finish=new THREE.Mesh(
- new THREE.CylinderGeometry(1.35,1.55,.3,8),
- mat(0xffcf64,.25,.7)
+/* =========================
+   7. FINISH YO'LAKLARI
+========================= */
+
+const finishLanes=[];
+
+for(let ci=0;ci<4;ci++){
+
+ const entry=path[(colors[ci].start+51)%52];
+ const lane=[];
+
+ // Har bir jamoaga 5 ta alohida rangli katak
+ for(let i=1;i<=5;i++){
+  const t=i/6;
+  lane.push([
+   entry[0]*(1-t),
+   entry[1]*(1-t)
+  ]);
+ }
+
+ // Oxirgi katak markaz
+ lane.push([0,0]);
+ finishLanes.push(lane);
+
+ lane.forEach((p,index)=>{
+  const tile=new THREE.Mesh(
+   new THREE.BoxGeometry(.92,.2,.92),
+   material(colors[ci].color,.3,.4)
+  );
+
+  tile.position.set(p[0],.26,p[1]);
+  tile.castShadow=true;
+  tile.receiveShadow=true;
+  board.add(tile);
+ });
+}
+
+// Markaziy finish
+const finishBase=new THREE.Mesh(
+ new THREE.CylinderGeometry(1.4,1.55,.3,8),
+ material(0xffca59,.2,.8)
 );
-finish.position.y=.22;
-scene.add(finish);
 
-const gem=new THREE.Mesh(
- new THREE.OctahedronGeometry(.65),
- mat(0xffe59b,.18,.8)
+finishBase.position.y=.38;
+board.add(finishBase);
+
+const finishGem=new THREE.Mesh(
+ new THREE.OctahedronGeometry(.55),
+ material(0xffe7a0,.18,.85)
 );
-gem.position.y=.8;
-scene.add(gem);
 
-const labelMat=mat(0xffd36b,.25,.5);
+finishGem.position.y=.9;
+board.add(finishGem);
 
-// JANGCHI MODELI
+function finishLane(ci,step){
+ return finishLanes[ci][step-52];
+}
+
+/* =========================
+   8. JANGCHI YASASH
+========================= */
+
 function createWarrior(ci){
+
  const root=new THREE.Group();
- const armor=mat(colors[ci].color,.28,.55);
- const dark=mat(0x26313b,.4,.5);
- const skin=mat(0xc88f6a);
- const helmet=mat(0xd9b25b,.2,.8);
 
- const torso=new THREE.Mesh(
-  new THREE.CylinderGeometry(.24,.31,.64,16),armor
+ const armor=material(colors[ci].color,.28,.55);
+ const gold=material(0xe6bd67,.22,.8);
+ const dark=material(0x26313d,.4,.5);
+ const skin=material(0xc58c68,.7);
+
+ // Tana
+ const body=new THREE.Mesh(
+  new THREE.CylinderGeometry(.23,.31,.65,16),
+  armor
  );
- torso.position.y=.83;
- root.add(torso);
 
+ body.position.y=.85;
+ root.add(body);
+
+ // Bosh
  const head=new THREE.Mesh(
-  new THREE.SphereGeometry(.22,24,18),skin
+  new THREE.SphereGeometry(.22,24,18),
+  skin
  );
- head.position.y=1.32;
+
+ head.position.y=1.35;
  root.add(head);
 
- const helm=new THREE.Mesh(
-  new THREE.SphereGeometry(.255,24,16),helmet
+ // Dubulg'a
+ const helmet=new THREE.Mesh(
+  new THREE.SphereGeometry(.26,24,16),
+  gold
  );
- helm.scale.y=.65;
- helm.position.y=1.43;
- root.add(helm);
+
+ helmet.scale.y=.7;
+ helmet.position.y=1.44;
+ root.add(helmet);
 
  const crest=new THREE.Mesh(
-  new THREE.ConeGeometry(.1,.4,8),mat(0x9d3038)
+  new THREE.ConeGeometry(.1,.38,8),
+  material(0xa12d3a)
  );
+
  crest.position.y=1.68;
  root.add(crest);
 
  const legs=[];
  const arms=[];
- for(let side of [-1,1]){
+
+ for(const side of [-1,1]){
+
   const leg=new THREE.Group();
-  leg.position.set(side*.13,.48,0);
-  const lm=new THREE.Mesh(
-   new THREE.CylinderGeometry(.09,.12,.43,12),dark
+  leg.position.set(side*.13,.5,0);
+
+  const legMesh=new THREE.Mesh(
+   new THREE.CylinderGeometry(.09,.12,.43,12),
+   dark
   );
-  lm.position.y=-.2;
-  leg.add(lm);
+
+  legMesh.position.y=-.2;
+  leg.add(legMesh);
   root.add(leg);
   legs.push(leg);
 
   const arm=new THREE.Group();
   arm.position.set(side*.28,1.05,0);
-  const am=new THREE.Mesh(
-   new THREE.CylinderGeometry(.075,.1,.42,12),armor
+
+  const armMesh=new THREE.Mesh(
+   new THREE.CylinderGeometry(.075,.1,.42,12),
+   armor
   );
-  am.position.y=-.18;
-  arm.add(am);
+
+  armMesh.position.y=-.18;
+  arm.add(armMesh);
   root.add(arm);
   arms.push(arm);
  }
 
+ // Qalqon
  const shield=new THREE.Mesh(
   new THREE.CylinderGeometry(.25,.25,.09,8),
   gold
  );
+
  shield.rotation.x=Math.PI/2;
  shield.position.set(-.43,.85,.08);
  root.add(shield);
 
  // Nayza
  const spear=new THREE.Group();
+
  const shaft=new THREE.Mesh(
   new THREE.CylinderGeometry(.025,.04,1.25,12),
-  mat(0x805b32,.35,.3)
+  material(0x805b32,.35,.3)
  );
+
  shaft.position.y=.65;
  spear.add(shaft);
 
  const tip=new THREE.Mesh(
-  new THREE.ConeGeometry(.105,.32,8),
+  new THREE.ConeGeometry(.1,.32,8),
   gold
  );
+
  tip.position.y=1.42;
  spear.add(tip);
+
  spear.position.set(.37,.05,0);
  root.add(spear);
 
+ // Oyoq tagi
  const base=new THREE.Mesh(
   new THREE.CylinderGeometry(.34,.34,.12,24),
   dark
  );
+
  base.position.y=.06;
  root.add(base);
 
  root.userData={
-  team:ci,legs,arms,spear,walking:false
+  team:ci,
+  legs:legs,
+  arms:arms,
+  spear:spear
  };
 
  root.traverse(o=>{
-  if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}
+  if(o.isMesh){
+   o.castShadow=true;
+   o.receiveShadow=true;
+  }
  });
 
  return root;
 }
 
+/* =========================
+   9. 16 TA JANGCHI
+========================= */
+
 const warriors=[];
 const states=[];
 
 for(let ci=0;ci<4;ci++){
+
  warriors[ci]=[];
  states[ci]=[];
+
  for(let j=0;j<4;j++){
+
   const w=createWarrior(ci);
-  scene.add(w);
+  board.add(w);
+
   warriors[ci].push(w);
-  states[ci].push({step:-1,done:false});
+  states[ci].push({
+   step:-1,
+   done:false
+  });
  }
 }
 
 function homePosition(ci,j){
  const p=homes[ci];
+
  return [
-  p[0]+(j%2?.7:-.7),
-  p[1]+(j<2?-.7:.7)
+  p[0]+(j%2?.65:-.65),
+  p[1]+(j<2?-.65:.65)
  ];
 }
 
-function globalIndex(ci,s){
- return (colors[ci].start+s)%52;
-}
-
-function finishLane(ci,step){
- const start=path[(colors[ci].start+51)%52];
- const t=(step-51)/5;
- return [
-  start[0]*(1-t),
-  start[1]*(1-t)
- ];
+function globalIndex(ci,step){
+ return (colors[ci].start+step)%52;
 }
 
 function getPosition(ci,s,j){
+
  if(s.step<0)return homePosition(ci,j);
+
  if(s.step>=56)return [0,0];
+
  if(s.step>=52)return finishLane(ci,s.step);
+
  return path[globalIndex(ci,s.step)];
 }
 
 function updatePositions(){
+
  for(let ci=0;ci<4;ci++){
   for(let j=0;j<4;j++){
+
    const s=states[ci][j];
    const p=getPosition(ci,s,j);
-   warriors[ci][j].position.set(p[0],.22,p[1]);
+
+   warriors[ci][j].position.set(
+    p[0],.22,p[1]
+   );
   }
  }
 }
+
 updatePositions();
 
-// Ovozlar: tashqi audio fayl talab qilinmaydi
+/* =========================
+   10. OVOZLAR
+========================= */
+
 let audio=null;
+
 function sound(type){
+
  try{
-  audio ||= new (window.AudioContext||window.webkitAudioContext)();
+
+  audio ||= new (
+   window.AudioContext||
+   window.webkitAudioContext
+  )();
+
   if(audio.state==="suspended")audio.resume();
+
   const osc=audio.createOscillator();
   const gain=audio.createGain();
-  osc.connect(gain);gain.connect(audio.destination);
+
+  osc.connect(gain);
+  gain.connect(audio.destination);
+
   const now=audio.currentTime;
-  const cfg={
-   dice:[220,.12],walk:[110,.055],spear:[95,.18],
-   boom:[65,.55],rocket:[440,.35],star:[880,.3],trap:[75,.4]
-  }[type]||[200,.1];
-  osc.frequency.setValueAtTime(cfg[0],now);
+
+  const sounds={
+   dice:[240,.13],
+   walk:[130,.07],
+   spear:[100,.22],
+   boom:[65,.55],
+   rocket:[450,.35],
+   star:[880,.3],
+   trap:[75,.4]
+  };
+
+  const c=sounds[type]||[200,.1];
+
+  osc.frequency.setValueAtTime(c[0],now);
+
   osc.frequency.exponentialRampToValueAtTime(
-   Math.max(30,cfg[0]*.35),now+cfg[1]
+   Math.max(30,c[0]*.3),
+   now+c[1]
   );
+
   gain.gain.setValueAtTime(.001,now);
-  gain.gain.linearRampToValueAtTime(.16,now+.015);
-  gain.gain.exponentialRampToValueAtTime(.001,now+cfg[1]);
-  osc.start(now);osc.stop(now+cfg[1]+.02);
+  gain.gain.linearRampToValueAtTime(.15,now+.02);
+  gain.gain.exponentialRampToValueAtTime(.001,now+c[1]);
+
+  osc.start(now);
+  osc.stop(now+c[1]+.02);
+
  }catch(e){}
 }
 
-let current=0,dice=null,busy=false;
+/* =========================
+   11. O'YIN HOLATI
+========================= */
+
+let current=0;
+let dice=null;
+let busy=false;
+
 const all=warriors.flat();
-const ray=new THREE.Raycaster();
+const raycaster=new THREE.Raycaster();
 const pointer=new THREE.Vector2();
 
-function toast(t){
- $("toast").textContent=t;
- $("toast").style.opacity=1;
+function toast(text){
+
+ const el=document.getElementById("toast");
+
+ el.textContent=text;
+ el.style.opacity=1;
+
  clearTimeout(toast.timer);
- toast.timer=setTimeout(()=>$("toast").style.opacity=0,1700);
+
+ toast.timer=setTimeout(()=>{
+  el.style.opacity=0;
+ },1800);
 }
 
 function updateUI(){
- $("turn").textContent="Navbat: "+colors[current].name;
- $("status").textContent=dice===null?"Zarni tashlang":"Zar: "+dice+" — jangchini tanlang";
- $("roll").disabled=dice!==null||busy;
- $("scores").innerHTML=colors.map((c,i)=>
-  `<span style="color:#${c.color.toString(16)}">${c.name}: ${states[i].filter(s=>s.done).length}/4</span><br>`
- ).join("");
+
+ document.getElementById("turn").textContent=
+  "Navbat: "+colors[current].name;
+
+ document.getElementById("status").textContent=
+  dice===null?"Zarni tashlang":"Zar: "+dice+" — jangchini tanlang";
+
+ document.getElementById("roll").disabled=
+  dice!==null||busy;
+
+ document.getElementById("scores").innerHTML=
+  colors.map((c,i)=>
+   `<span style="color:#${c.color.toString(16)}">${c.name}: ${states[i].filter(s=>s.done).length}/4</span><br>`
+  ).join("");
 }
 
 function nextTurn(extra=false){
+
  dice=null;
- if(!extra)current=(current+1)%4;
+
+ if(!extra){
+  current=(current+1)%4;
+ }
+
  updateUI();
 }
 
-$("roll").onclick=()=>{
+/* =========================
+   12. ZAR
+========================= */
+
+document.getElementById("roll").onclick=()=>{
+
  if(busy||dice!==null)return;
+
  sound("dice");
+
  dice=1+Math.floor(Math.random()*6);
- $("dice").textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
+
+ document.getElementById("dice").textContent=
+  ["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
 
  const possible=states[current].some(s=>
-  !s.done&&(s.step<0?dice===6:s.step+dice<=56)
+  !s.done&&(
+   s.step<0?dice===6:s.step+dice<=56
+  )
  );
+
  updateUI();
+
  if(!possible){
   toast("Yurish mumkin emas!");
-  setTimeout(()=>nextTurn(),800);
+  setTimeout(()=>nextTurn(),900);
  }
 };
 
+/* =========================
+   13. PORTLASH
+========================= */
+
 function explosion(pos){
+
  sound("boom");
+
  const group=new THREE.Group();
  group.position.copy(pos);
- scene.add(group);
+ board.add(group);
+
  const particles=[];
- const colors2=[0xffd35a,0xff772c,0xffffff];
- for(let i=0;i<32;i++){
+
+ const particleMaterials=[
+  material(0xffd45b),
+  material(0xff752c),
+  material(0xffffff)
+ ];
+
+ for(let i=0;i<30;i++){
+
   const m=new THREE.Mesh(
-   new THREE.SphereGeometry(.08+Math.random()*.07,8,8),
-   mat(colors2[i%3])
+   new THREE.SphereGeometry(.09,8,8),
+   particleMaterials[i%3]
   );
+
   group.add(m);
+
   particles.push({
    mesh:m,
-   v:new THREE.Vector3(
-    (Math.random()-.5)*.23,
-    Math.random()*.24,
-    (Math.random()-.5)*.23
+   velocity:new THREE.Vector3(
+    (Math.random()-.5)*.25,
+    Math.random()*.25,
+    (Math.random()-.5)*.25
    )
   });
  }
+
  const start=performance.now();
- function tick(now){
+
+ function animate(now){
+
   const t=(now-start)/650;
+
   particles.forEach(p=>{
-   p.mesh.position.add(p.v);
+   p.mesh.position.add(p.velocity);
    p.mesh.scale.setScalar(Math.max(.01,1-t));
   });
-  if(t<1)requestAnimationFrame(tick);
-  else scene.remove(group);
+
+  if(t<1){
+   requestAnimationFrame(animate);
+  }else{
+   board.remove(group);
+  }
  }
- requestAnimationFrame(tick);
+
+ requestAnimationFrame(animate);
 }
 
+/* =========================
+   14. JANG ANIMATSIYASI
+========================= */
+
 function capture(ci,j,done){
+
  const w=warriors[ci][j];
- const start=performance.now();
  const spear=w.userData.spear;
+
  sound("spear");
 
- function tick(now){
-  const t=Math.min(1,(now-start)/650);
-  // Nayza oldinga sanchiladi va qaytadi
-  spear.position.z=-Math.sin(t*Math.PI)*.65;
-  spear.rotation.x=Math.sin(t*Math.PI)*.45;
-  w.position.y=.22+Math.sin(t*Math.PI)*.4;
+ const start=performance.now();
 
-  if(t<1)requestAnimationFrame(tick);
-  else{
+ function animate(now){
+
+  const t=Math.min(1,(now-start)/650);
+
+  // Nayza zarbasi
+  spear.position.z=-Math.sin(t*Math.PI)*.75;
+
+  spear.rotation.x=
+   Math.sin(t*Math.PI)*.4;
+
+  w.position.y=
+   .22+Math.sin(t*Math.PI)*.4;
+
+  if(t<1){
+   requestAnimationFrame(animate);
+  }else{
+
    spear.position.z=0;
    spear.rotation.x=0;
    w.position.y=.22;
+
    explosion(w.position.clone());
+
    states[ci][j].step=-1;
    updatePositions();
+
    done();
   }
  }
- requestAnimationFrame(tick);
+
+ requestAnimationFrame(animate);
 }
+
+/* =========================
+   15. YURISH ANIMATSIYASI
+========================= */
 
 function animateWalk(w,from,to,done){
+
  const start=performance.now();
- const duration=170;
- const {legs,arms}=w.userData;
+ const duration=190;
+
+ const legs=w.userData.legs;
+ const arms=w.userData.arms;
+
  sound("walk");
 
- function tick(now){
-  const t=Math.min(1,(now-start)/duration);
-  w.position.lerpVectors(from,to,t);
-  w.position.y=.22+Math.abs(Math.sin(t*Math.PI*2))*.13;
-  legs.forEach((l,i)=>l.rotation.x=Math.sin(t*Math.PI*4+i*Math.PI)*.65);
-  arms.forEach((a,i)=>a.rotation.x=Math.sin(t*Math.PI*4+i*Math.PI)*.4);
+ function animate(now){
 
-  if(t<1)requestAnimationFrame(tick);
-  else{
+  const t=Math.min(1,(now-start)/duration);
+
+  w.position.lerpVectors(from,to,t);
+
+  w.position.y=
+   .22+Math.abs(Math.sin(t*Math.PI*2))*.13;
+
+  legs.forEach((l,i)=>{
+   l.rotation.x=
+    Math.sin(t*Math.PI*4+i*Math.PI)*.65;
+  });
+
+  arms.forEach((a,i)=>{
+   a.rotation.x=
+    Math.sin(t*Math.PI*4+i*Math.PI)*.4;
+  });
+
+  if(t<1){
+   requestAnimationFrame(animate);
+  }else{
+
    w.position.copy(to);
    w.position.y=.22;
+
    legs.forEach(l=>l.rotation.x=0);
    arms.forEach(a=>a.rotation.x=0);
+
    done();
   }
  }
- requestAnimationFrame(tick);
+
+ requestAnimationFrame(animate);
 }
 
+/* =========================
+   16. YANGI YURISH
+========================= */
+
 function moveWarrior(ci,j){
+
  if(busy||dice===null||ci!==current)return;
+
  const s=states[ci][j];
+
  if(s.done)return;
 
  if(s.step<0&&dice!==6){
-  toast("Jangchini chiqarish uchun 6 kerak!");
+  toast("Uyidan chiqish uchun 6 kerak!");
   return;
  }
+
  if(s.step>=0&&s.step+dice>56){
-  toast("Aniq son kerak!");
+  toast("Finishga yetish uchun aniq son kerak!");
   return;
  }
 
  busy=true;
- const amount=s.step<0?0:dice;
- const target=s.step<0?0:s.step+amount;
 
- let count=s.step<0?1:amount;
+ const target=s.step<0?0:s.step+dice;
  let step=s.step<0?-1:s.step;
+
  const w=warriors[ci][j];
 
  function oneStep(){
+
   if(step<target){
+
    step++;
-   const pos=step>=52?finishLane(ci,step):path[globalIndex(ci,step)];
+
+   const p=step>=52
+    ?finishLane(ci,step)
+    :path[globalIndex(ci,step)];
+
    const from=w.position.clone();
-   const to=new THREE.Vector3(pos[0],.22,pos[1]);
+
+   const to=new THREE.Vector3(
+    p[0],.22,p[1]
+   );
+
    animateWalk(w,from,to,oneStep);
+
    return;
   }
 
   s.step=target;
 
+  // Finish
   if(target===56){
+
    s.done=true;
-   w.position.set(0,.3,0);
+   w.position.set(0,.5,0);
+
    busy=false;
-   toast("🏆 Jangchi marraga yetdi!");
-   const win=states[current].every(x=>x.done);
-   if(win){toast(colors[current].name+" g‘alaba qozondi!");dice=null;updateUI();}
-   else nextTurn(dice===6);
+
+   toast("🏆 Jangchi finishga yetdi!");
+
+   if(states[current].every(x=>x.done)){
+    toast(colors[current].name+" g‘alaba qozondi!");
+    dice=null;
+    updateUI();
+   }else{
+    nextTurn(dice===6);
+   }
+
    return;
   }
 
-  const idx=globalIndex(ci,target);
+  // Raqibni tekshirish
   let victim=null;
 
-  for(let oi=0;oi<4;oi++){
-   if(oi===ci)continue;
-   for(let oj=0;oj<4;oj++){
-    const os=states[oi][oj];
-    if(os.step>=0&&os.step<52&&!os.done&&
-       globalIndex(oi,os.step)===idx){
-     victim={ci:oi,j:oj};break;
+  if(target<52){
+
+   const idx=globalIndex(ci,target);
+
+   for(let oi=0;oi<4;oi++){
+
+    if(oi===ci)continue;
+
+    for(let oj=0;oj<4;oj++){
+
+     const os=states[oi][oj];
+
+     if(
+      os.step>=0&&
+      os.step<52&&
+      !os.done&&
+      globalIndex(oi,os.step)===idx
+     ){
+      victim={ci:oi,j:oj};
+      break;
+     }
     }
+
+    if(victim)break;
    }
-   if(victim)break;
   }
 
   if(victim){
+
    toast("⚔ Nayza zarbasi! Raqib uyiga qaytdi!");
+
    capture(victim.ci,victim.j,finishMove);
-  }else finishMove();
+
+  }else{
+
+   finishMove();
+  }
  }
 
  function finishMove(){
-  busy=false;
-  const idx=globalIndex(ci,target);
-  const isTrap=traps.includes(idx);
-  const isRocket=rockets.includes(idx);
-  const isStar=stars.includes(idx);
 
-  if(isTrap){
+  const idx=target<52?globalIndex(ci,target):-1;
+
+  // Tuzoq
+  if(traps.includes(idx)){
+
    sound("trap");
    toast("🕳 Tuzoq! Jangchi uyiga qaytdi!");
+
    s.step=-1;
    updatePositions();
-  }else if(isRocket){
+
+  }
+
+  // Raketa
+  else if(rockets.includes(idx)){
+
    sound("rocket");
+
    toast("🚀 Raketa! 5 qadam oldinga!");
-   const newStep=Math.min(56,s.step+5);
-   s.step=newStep;
-   if(newStep===56){
+
+   s.step=Math.min(56,s.step+5);
+
+   if(s.step===56){
     s.done=true;
-    w.position.set(0,.3,0);
-   }else{
-    const p=getPosition(ci,s,j);
-    w.position.set(p[0],.22,p[1]);
    }
-  }else if(isStar){
-   sound("star");
-   toast("⭐ Yulduzcha! Yana bir yurish!");
+
    updatePositions();
+
+  }
+
+  // Yulduzcha
+  else if(stars.includes(idx)){
+
+   sound("star");
+
+   toast("⭐ Yulduzcha! Yana bir yurish!");
+
+   updatePositions();
+
+   busy=false;
    dice=null;
    updateUI();
    return;
   }
 
+  busy=false;
   updatePositions();
-  const win=states[current].every(x=>x.done);
-  if(win){
+
+  if(states[current].every(x=>x.done)){
+
    toast("🏆 "+colors[current].name+" g‘alaba qozondi!");
+
    dice=null;
    updateUI();
+
   }else{
-   const extra=dice===6;
-   nextTurn(extra);
+
+   nextTurn(dice===6);
   }
  }
 
  oneStep();
 }
 
-renderer.domElement.addEventListener("pointerdown",e=>{
- if(busy||dice===null)return;
- const rect=renderer.domElement.getBoundingClientRect();
- pointer.x=(e.clientX-rect.left)/rect.width*2-1;
- pointer.y=-(e.clientY-rect.top)/rect.height*2+1;
- ray.setFromCamera(pointer,camera);
- const hits=ray.intersectObjects(all,true);
- if(!hits.length)return;
- let node=hits[0].object;
- while(node&&!all.includes(node))node=node.parent;
- if(node){
-  const n=all.indexOf(node);
-  moveWarrior(Math.floor(n/4),n%4);
- }
-});
+/* =========================
+   17. JANGCHINI TANLASH
+========================= */
 
-// Kamera va ekran
+renderer.domElement.addEventListener(
+ "pointerdown",e=>{
+
+  if(busy||dice===null)return;
+
+  const rect=renderer.domElement.getBoundingClientRect();
+
+  pointer.x=
+   ((e.clientX-rect.left)/rect.width)*2-1;
+
+  pointer.y=
+   -((e.clientY-rect.top)/rect.height)*2+1;
+
+  raycaster.setFromCamera(pointer,camera);
+
+  const hits=raycaster.intersectObjects(all,true);
+
+  if(!hits.length)return;
+
+  let node=hits[0].object;
+
+  while(node&&!all.includes(node)){
+   node=node.parent;
+  }
+
+  if(node){
+
+   const n=all.indexOf(node);
+
+   moveWarrior(
+    Math.floor(n/4),
+    n%4
+   );
+  }
+ }
+);
+
+/* =========================
+   18. KAMERA O'LCHAMI
+========================= */
+
 function resize(){
+
  camera.aspect=innerWidth/innerHeight;
- camera.position.set(15,20,innerWidth<650?24:20);
+
+ // Telefon va kompyuterda doskani sig‘dirish
+ const portrait=innerWidth<innerHeight;
+
+ camera.position.set(
+  portrait?0:15,
+  portrait?38:32,
+  portrait?32:25
+ );
+
  camera.lookAt(0,0,0);
  camera.updateProjectionMatrix();
+
  renderer.setSize(innerWidth,innerHeight);
  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 }
+
 addEventListener("resize",resize);
+resize();
+
+/* =========================
+   19. ANIMATSIYA
+========================= */
 
 const clock=new THREE.Clock();
+
 function render(){
+
  requestAnimationFrame(render);
+
  const t=clock.getElapsedTime();
- gem.rotation.y=t*.6;
- gem.position.y=.8+Math.sin(t*2)*.12;
+
+ finishGem.rotation.y=t*.6;
+ finishGem.position.y=.9+Math.sin(t*2)*.12;
+
  renderer.render(scene,camera);
 }
+
+updatePositions();
 updateUI();
 render();
+
 </script>
 </body>
 </html>
