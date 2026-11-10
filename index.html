@@ -4,27 +4,60 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>LUDO WARRIORS 2D + 3D</title>
+<title>LUDO WARRIORS</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101b27;color:white;font-family:Arial;touch-action:none}
+html,body{
+ margin:0;width:100%;height:100%;overflow:hidden;
+ background:#079ce2;color:white;font-family:Arial;
+ touch-action:none
+}
 #game{position:fixed;inset:0}
-#board,#game3d{position:absolute;inset:0;width:100%;height:100%;display:block}
-#game3d{pointer-events:auto}
+#board,#three{
+ position:absolute;inset:0;width:100%;height:100%;
+ display:block
+}
+#three{pointer-events:auto}
 #hud{position:fixed;inset:0;pointer-events:none}
-.panel{background:#091625ed;border:1px solid #ffffff35;border-radius:12px;padding:9px 11px}
-#top{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:5px}
-#brand{font-size:15px;font-weight:900;color:#ffd36e}
+.panel{
+ background:#10243be8;border:2px solid #ffffff70;
+ border-radius:13px;padding:9px 12px;
+ box-shadow:0 3px 12px #001b3750
+}
+#top{
+ position:absolute;top:8px;left:8px;right:8px;
+ display:flex;justify-content:space-between;align-items:flex-start;
+ gap:5px
+}
+#brand{font-size:15px;font-weight:900;color:#ffe28a}
 #turn{font-size:12px;margin-top:5px}
-#status{font-size:11px;color:#c4d6e9;margin-top:4px}
+#status{font-size:11px;color:#d9e9f7;margin-top:4px}
 #right{display:flex;gap:5px;align-items:center}
-button{pointer-events:auto;border:1px solid #ffe3a0;border-radius:10px;padding:12px 10px;font-weight:900;background:linear-gradient(135deg,#fff0b8,#c58a29);color:#17202b}
+button{
+ pointer-events:auto;border:2px solid #fff2c1;
+ border-radius:12px;padding:12px 10px;
+ font-weight:900;color:#17202b;
+ background:linear-gradient(135deg,#fff1b7,#d49a35);
+ cursor:pointer
+}
 button:disabled{opacity:.4}
-#dice{font-size:23px;min-width:42px;text-align:center}
-#bottom{position:absolute;bottom:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:end;gap:6px}
+#dice{font-size:25px;min-width:46px;text-align:center}
+#bottom{
+ position:absolute;bottom:8px;left:8px;right:8px;
+ display:flex;justify-content:space-between;align-items:end;gap:6px
+}
 #message,#scores{font-size:10px;line-height:1.6}
 #message{max-width:65%}
-#toast{position:absolute;top:23%;left:50%;transform:translateX(-50%);background:#101c2dee;border:1px solid #ffffff55;border-radius:12px;padding:12px 16px;font-weight:bold;text-align:center;opacity:0;transition:.2s;pointer-events:none;max-width:85%;font-size:13px}
+#scores{text-align:right}
+#toast{
+ position:absolute;top:22%;left:50%;
+ transform:translateX(-50%);
+ background:#10243bf2;border:2px solid #ffffff75;
+ border-radius:13px;padding:12px 17px;
+ font-weight:bold;text-align:center;
+ opacity:0;transition:.2s;pointer-events:none;
+ max-width:85%;font-size:13px
+}
 @media(max-width:500px){
  #brand{font-size:12px}
  .panel{padding:7px}
@@ -34,15 +67,16 @@ button:disabled{opacity:.4}
 </style>
 </head>
 <body>
+
 <div id="game">
  <canvas id="board"></canvas>
- <div id="game3d"></div>
+ <div id="three"></div>
 </div>
 
 <div id="hud">
  <div id="top">
   <div class="panel">
-   <div id="brand">⚔ LUDO WARRIORS</div>
+   <div id="brand">⚔ LUDO WARRIORS 3D</div>
    <div id="turn">Navbat: Qizil</div>
    <div id="status">Zarni tashlang</div>
   </div>
@@ -51,71 +85,47 @@ button:disabled{opacity:.4}
    <button id="roll">ZAR TASHLA</button>
   </div>
  </div>
+
  <div id="bottom">
-  <div class="panel" id="message">Jangchini tanlang!<br>🕳 Maxluq · 🚀 Raketa · ⭐ Bonus</div>
+  <div class="panel" id="message">
+   Jangchini tanlang va jangni boshlang!
+   <br>🕳 Maxluq · ⚔ Nayza · 🏰 Uy
+  </div>
   <div class="panel" id="scores"></div>
  </div>
+
  <div id="toast"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
 <script>
 "use strict";
 
-/* =================================
-   1. OPTIMALLASHTIRILGAN 3D SAHNA
-================================= */
+/* =========================================
+   1. SOZLAMALAR
+========================================= */
 
-const scene=new THREE.Scene();
-
-const camera=new THREE.OrthographicCamera(
- -8,8,8,-8,.1,100
-);
-camera.position.set(0,25,0);
-camera.up.set(0,0,-1);
-camera.lookAt(0,0,0);
-
-const renderer=new THREE.WebGLRenderer({
- alpha:true,
- antialias:false,
- powerPreference:"low-power"
-});
-
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.25));
-renderer.setSize(innerWidth,innerHeight);
-renderer.setClearColor(0x000000,0);
-renderer.outputColorSpace=THREE.SRGBColorSpace;
-
-document.getElementById("game3d").appendChild(renderer.domElement);
-
-scene.add(new THREE.HemisphereLight(0xffffff,0x526070,2));
-
-const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(-5,12,5);
-scene.add(sun);
-
-function mat(color){
- return new THREE.MeshLambertMaterial({color});
-}
+const $=id=>document.getElementById(id);
 
 const colors=[
- {name:"Qizil",color:0xe33e48,start:0},
- {name:"Yashil",color:0x20b978,start:13},
- {name:"Ko‘k",color:0x3289ed,start:26},
- {name:"Sariq",color:0xeab83b,start:39}
+ {name:"Qizil",color:0xe52c38,start:0},
+ {name:"Yashil",color:0x149d39,start:13},
+ {name:"Ko‘k",color:0x1261e8,start:26},
+ {name:"Sariq",color:0xf2c51b,start:39}
 ];
 
-const gold=mat(0xe7c16c);
-const dark=mat(0x263746);
+const traps=[5,18,31,44];
 
-/* =================================
-   2. 2D DOSKA
-================================= */
-
-const canvas=document.getElementById("board");
-const ctx=canvas.getContext("2d");
+const homes=[
+ [-4.4,-4.4],
+ [4.4,-4.4],
+ [4.4,4.4],
+ [-4.4,4.4]
+];
 
 const path=[];
+
 for(let side=0;side<4;side++){
  for(let i=0;i<13;i++){
   const t=-5.5+i*(11/12);
@@ -126,226 +136,365 @@ for(let side=0;side<4;side++){
  }
 }
 
-const traps=[5,18,31,44];
-const rockets=[9,22,35,48];
-const stars=[2,15,28,41];
+/* =========================================
+   2. THREE.JS
+========================================= */
 
-const homes=[
- [-4.4,-4.4],
- [4.4,-4.4],
- [4.4,4.4],
- [-4.4,4.4]
-];
+const scene=new THREE.Scene();
 
-let scale=1,cx=0,cy=0;
+const camera=new THREE.OrthographicCamera(
+ -12,12,12,-12,.1,100
+);
 
-function screen(x,z){
- return [cx+x*scale,cy+z*scale];
+camera.position.set(19,29,19);
+camera.lookAt(0,0,0);
+
+const renderer=new THREE.WebGLRenderer({
+ alpha:true,
+ antialias:false,
+ powerPreference:"low-power"
+});
+
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.setClearColor(0x000000,0);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+
+$("three").appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x526070,2.1));
+
+const sun=new THREE.DirectionalLight(0xffffff,2);
+sun.position.set(-7,15,8);
+scene.add(sun);
+
+const materials={};
+
+function mat(color){
+ if(!materials[color]){
+  materials[color]=new THREE.MeshLambertMaterial({color});
+ }
+ return materials[color];
 }
 
-function roundedRect(x,y,w,h,r,color){
- ctx.fillStyle=color;
+const gold=mat(0xf5c64b);
+const dark=mat(0x263746);
+
+/* =========================================
+   3. 2D IZOMETRIK DOSKA
+========================================= */
+
+const canvas=$("board");
+const ctx=canvas.getContext("2d");
+
+function project(x,z){
+ const v=new THREE.Vector3(x,0,z);
+ v.project(camera);
+
+ return [
+  (v.x*.5+.5)*innerWidth,
+  (-v.y*.5+.5)*innerHeight
+ ];
+}
+
+function polygon(points,color,stroke=null,width=1){
  ctx.beginPath();
- ctx.roundRect(x,y,w,h,r);
+
+ points.forEach((p,i)=>{
+  const q=project(p[0],p[1]);
+  if(i===0)ctx.moveTo(q[0],q[1]);
+  else ctx.lineTo(q[0],q[1]);
+ });
+
+ ctx.closePath();
+ ctx.fillStyle=color;
  ctx.fill();
+
+ if(stroke){
+  ctx.strokeStyle=stroke;
+  ctx.lineWidth=width;
+  ctx.stroke();
+ }
 }
 
-function drawTile(x,z,color){
- const p=screen(x,z);
- const s=scale*.42;
-
- roundedRect(
-  p[0]-s,p[1]-s,s*2,s*2,
-  scale*.08,color
- );
-
- ctx.strokeStyle="#ffffff70";
- ctx.lineWidth=Math.max(1,scale*.025);
- ctx.strokeRect(p[0]-s,p[1]-s,s*2,s*2);
+function boxTop(x,z,size,color){
+ const h=size/2;
+ polygon([
+  [x-h,z-h],[x+h,z-h],
+  [x+h,z+h],[x-h,z+h]
+ ],color,"#ffffff65",1.5);
 }
 
-function drawBoard(){
+function drawWater(){
+ const g=ctx.createLinearGradient(0,0,innerWidth,innerHeight);
+ g.addColorStop(0,"#079ce7");
+ g.addColorStop(.5,"#35c8f5");
+ g.addColorStop(1,"#0879cb");
+ ctx.fillStyle=g;
+ ctx.fillRect(0,0,innerWidth,innerHeight);
 
- const w=innerWidth,h=innerHeight;
- const dpr=Math.min(devicePixelRatio||1,1.5);
+ // Dengiz to'lqinlari
+ ctx.globalAlpha=.17;
+ ctx.strokeStyle="#ffffff";
+ ctx.lineWidth=2;
 
- canvas.width=Math.round(w*dpr);
- canvas.height=Math.round(h*dpr);
- canvas.style.width=w+"px";
- canvas.style.height=h+"px";
+ for(let i=0;i<12;i++){
+  ctx.beginPath();
+  const x=(i%4)*innerWidth/4;
+  const y=Math.floor(i/4)*innerHeight/3+35;
+  ctx.ellipse(x+50,y+20,45,8,-.2,0,Math.PI*2);
+  ctx.stroke();
+ }
+ ctx.globalAlpha=1;
+}
 
- ctx.setTransform(dpr,0,0,dpr,0,0);
- ctx.clearRect(0,0,w,h);
+function drawIsland(){
+ const s=7.35;
 
- scale=Math.min(w,h)*.82/15;
- cx=w/2;
- cy=h/2;
+ // Orolning qalin yon tomoni
+ polygon([
+  [-s,-s],[s,-s],[s,s],[-s,s]
+ ],"#b96b1b");
 
- // Orqa fon
- ctx.fillStyle="#101b27";
- ctx.fillRect(0,0,w,h);
+ // Pastki soya
+ polygon([
+  [-s,-s],[s,-s],[s,s],[-s,s]
+ ],"#df9b35");
 
- // Doska soyasi
- const boardSize=14.8*scale;
- roundedRect(
-  cx-boardSize/2+4,
-  cy-boardSize/2+6,
-  boardSize,boardSize,
-  scale*.35,"#050c15"
- );
+ // Orol yuzasi
+ polygon([
+  [-s,-s],[s,-s],[s,s],[-s,s]
+ ],"#a4c93d","#f9e5a0",4);
 
- // Doska
- roundedRect(
-  cx-boardSize/2,
-  cy-boardSize/2,
-  boardSize,boardSize,
-  scale*.35,"#d6b36c"
- );
+ // Chetdagi yorug'lik
+ polygon([
+  [-s,-s],[s,-s],[s,s],[-s,s]
+ ],"rgba(0,0,0,0)","#fff1b1",3);
 
- roundedRect(
-  cx-boardSize/2+scale*.12,
-  cy-boardSize/2+scale*.12,
-  boardSize-scale*.24,
-  boardSize-scale*.24,
-  scale*.25,"#253e52"
- );
+ // Orolning suvdagi bezaklari
+ for(let i=0;i<18;i++){
+  const x=-6.5+(i%6)*2.5;
+  const z=-6.5+Math.floor(i/6)*6.3;
+  const p=project(x,z);
+  ctx.fillStyle="#6e9c33";
+  ctx.beginPath();
+  ctx.arc(p[0],p[1],3,0,Math.PI*2);
+  ctx.fill();
+ }
+}
 
- // To'rt uy
- for(let i=0;i<4;i++){
-  const p=screen(homes[i][0],homes[i][1]);
-  const s=scale*1.55;
+function drawCastle(ci){
+ const x=homes[ci][0];
+ const z=homes[ci][1];
+ const c="#"+colors[ci].color.toString(16);
 
-  roundedRect(
-   p[0]-s,p[1]-s,s*2,s*2,
-   scale*.18,"#"+colors[i].color.toString(16)
-  );
+ // Qal'a tagligi
+ polygon([
+  [x-1.8,z-1.8],[x+1.8,z-1.8],
+  [x+1.8,z+1.8],[x-1.8,z+1.8]
+ ],"#536477","#e4e9ef",3);
 
-  roundedRect(
-   p[0]-s*.82,p[1]-s*.82,s*1.64,s*1.64,
-   scale*.14,"#263b4e"
-  );
+ // Hovli
+ boxTop(x,z,3.15,c);
+ boxTop(x,z,2.7,"#26394c");
 
-  for(let j=0;j<4;j++){
-   const x=homes[i][0]+(j%2?.65:-.65);
-   const z=homes[i][1]+(j<2?-.65:.65);
-   const q=screen(x,z);
+ // Qal'a devorlari
+ const walls=[
+  [[x-1.55,z-1.55],[x+1.55,z-1.55]],
+  [[x+1.55,z-1.55],[x+1.55,z+1.55]],
+  [[x+1.55,z+1.55],[x-1.55,z+1.55]],
+  [[x-1.55,z+1.55],[x-1.55,z-1.55]]
+ ];
 
+ walls.forEach((w)=>{
+  const a=w[0],b=w[1];
+  const height=.35;
+  polygon([
+   [a[0],a[1]],[b[0],b[1]],
+   [b[0],b[1]-height],[a[0],a[1]-height]
+  ],"#75869b","#c8d5e5",1);
+ });
+
+ // Minora va bayroq
+ for(const side of [-1,1]){
+  for(const other of [-1,1]){
+   const px=x+side*1.55;
+   const pz=z+other*1.55;
+   const p=project(px,pz);
+
+   ctx.fillStyle="#aebed1";
    ctx.beginPath();
-   ctx.arc(q[0],q[1],scale*.29,0,Math.PI*2);
-   ctx.fillStyle="#e4d5b2";
+   ctx.arc(p[0],p[1],5,0,Math.PI*2);
    ctx.fill();
-   ctx.strokeStyle="#ffffff";
-   ctx.lineWidth=2;
+
+   ctx.strokeStyle="#333";
+   ctx.lineWidth=1.5;
+   ctx.beginPath();
+   ctx.moveTo(p[0],p[1]);
+   ctx.lineTo(p[0],p[1]-17);
    ctx.stroke();
+
+   ctx.fillStyle=c;
+   ctx.beginPath();
+   ctx.moveTo(p[0],p[1]-17);
+   ctx.lineTo(p[0]+10,p[1]-13);
+   ctx.lineTo(p[0],p[1]-9);
+   ctx.fill();
   }
  }
 
- // Asosiy yo'l
- path.forEach((p,i)=>{
-  let color="#e7edf2";
-  if(traps.includes(i))color="#923c46";
-  if(rockets.includes(i))color="#287bc0";
-  if(stars.includes(i))color="#c69a35";
-  drawTile(p[0],p[1],color);
+ // Uy rangli aylana
+ const center=project(x,z);
+ ctx.beginPath();
+ ctx.arc(center[0],center[1],Math.max(9,innerWidth*.025),0,Math.PI*2);
+ ctx.fillStyle=c;
+ ctx.fill();
+}
 
-  const q=screen(p[0],p[1]);
+function drawTile(x,z,color,size=.87){
+ const h=size/2;
+
+ polygon([
+  [x-h,z-h],[x+h,z-h],
+  [x+h,z+h],[x-h,z+h]
+ ],color,"#ffffff75",1.4);
+}
+
+function drawBoard(){
+ const dpr=Math.min(devicePixelRatio||1,1.5);
+
+ canvas.width=Math.round(innerWidth*dpr);
+ canvas.height=Math.round(innerHeight*dpr);
+ canvas.style.width=innerWidth+"px";
+ canvas.style.height=innerHeight+"px";
+
+ ctx.setTransform(dpr,0,0,dpr,0,0);
+
+ drawWater();
+ drawIsland();
+
+ // Rangli to'rt uy
+ for(let i=0;i<4;i++)drawCastle(i);
+
+ // Asosiy kataklar
+ path.forEach((p,i)=>{
+  let c="#a5c936";
+
+  if(i===0||i===13||i===26||i===39)
+   c="#ffffff";
+
+  if(traps.includes(i))c="#a8bd39";
+
+  drawTile(p[0],p[1],c);
+
+  const q=project(p[0],p[1]);
 
   if(traps.includes(i)){
+   ctx.fillStyle="#5a2527";
    ctx.beginPath();
-   ctx.arc(q[0],q[1],scale*.19,0,Math.PI*2);
-   ctx.fillStyle="#10151b";
+   ctx.arc(q[0],q[1],Math.max(4,innerWidth*.008),0,Math.PI*2);
    ctx.fill();
-   ctx.strokeStyle="#e48c6d";
+
+   ctx.strokeStyle="#ffdb73";
    ctx.lineWidth=2;
    ctx.stroke();
   }
-
-  if(rockets.includes(i)){
-   ctx.font=`${scale*.42}px Arial`;
-   ctx.textAlign="center";
-   ctx.textBaseline="middle";
-   ctx.fillText("🚀",q[0],q[1]);
-  }
-
-  if(stars.includes(i)){
-   ctx.font=`${scale*.42}px Arial`;
-   ctx.textAlign="center";
-   ctx.textBaseline="middle";
-   ctx.fillText("⭐",q[0],q[1]);
-  }
  });
 
- // Finish yo'laklari
+ // Rangli finish yo'laklari
  for(let ci=0;ci<4;ci++){
   const entry=path[(colors[ci].start+51)%52];
 
   for(let i=1;i<=5;i++){
    const t=i/5;
-   const x=entry[0]*(1-t);
-   const z=entry[1]*(1-t);
-
-   drawTile(x,z,"#"+colors[ci].color.toString(16));
+   drawTile(
+    entry[0]*(1-t),
+    entry[1]*(1-t),
+    "#"+colors[ci].color.toString(16),
+    .94
+   );
   }
  }
 
- // Markaz
- const center=screen(0,0);
+ // Rangli markaz
+ polygon([
+  [-1.1,0],[0,-1.1],[1.1,0],[0,1.1]
+ ],"#eac44b","#fff0a6",3);
 
- ctx.beginPath();
- ctx.arc(center[0],center[1],scale*.85,0,Math.PI*2);
- ctx.fillStyle="#d4a84e";
- ctx.fill();
- ctx.strokeStyle="#ffe8ad";
- ctx.lineWidth=3;
- ctx.stroke();
-
- ctx.beginPath();
- ctx.arc(center[0],center[1],scale*.55,0,Math.PI*2);
- ctx.fillStyle="#fff0bd";
- ctx.fill();
-
- ctx.font=`bold ${scale*.65}px Arial`;
+ const p=project(0,0);
+ ctx.font="bold 28px Arial";
  ctx.textAlign="center";
  ctx.textBaseline="middle";
- ctx.fillStyle="#59401c";
- ctx.fillText("🏆",center[0],center[1]);
+ ctx.fillText("👑",p[0],p[1]);
 }
 
-/* =================================
-   3. 3D JANGCHILAR
-================================= */
+/* =========================================
+   4. 3D JANGCHI MODELI
+========================================= */
 
 function createWarrior(ci){
-
  const root=new THREE.Group();
- const armor=mat(colors[ci].color);
- const skin=mat(0xb98767);
 
- function add(geo,material,x,y,z){
-  const m=new THREE.Mesh(geo,material);
-  m.position.set(x,y,z);
-  root.add(m);
-  return m;
+ const armor=mat(colors[ci].color);
+ const skin=mat(0xe3a27c);
+ const black=mat(0x151b22);
+
+ function add(geo,m,x,y,z){
+  const mesh=new THREE.Mesh(geo,m);
+  mesh.position.set(x,y,z);
+  root.add(mesh);
+  return mesh;
  }
 
- add(new THREE.CylinderGeometry(.23,.29,.55,8),armor,0,.55,0);
- add(new THREE.SphereGeometry(.19,10,8),skin,0,.95,0);
+ // Tana
+ add(new THREE.BoxGeometry(.43,.55,.32),armor,0,.65,0);
 
+ // Bosh
+ add(new THREE.SphereGeometry(.2,9,7),skin,0,1.08,0);
+
+ // Dubulg'a
  const helmet=add(
-  new THREE.SphereGeometry(.24,10,8),
-  gold,0,1.08,0
+  new THREE.SphereGeometry(.245,9,7),
+  mat(0x8a969e),0,1.17,0
  );
- helmet.scale.y=.7;
+ helmet.scale.set(1.08,.75,1);
 
+ // Dubulg'a qizil bezagi
  add(
-  new THREE.ConeGeometry(.09,.27,6),
-  mat(0xa72e3a),0,1.35,0
+  new THREE.BoxGeometry(.12,.35,.12),
+  mat(0xc92732),0,1.32,-.12
  );
+
+ // Oyoqlar
+ const legs=[];
+ for(const side of [-1,1]){
+  const leg=add(
+   new THREE.BoxGeometry(.15,.37,.18),
+   armor,side*.13,.2,0
+  );
+  legs.push(leg);
+
+  add(
+   new THREE.BoxGeometry(.22,.12,.28),
+   black,side*.13,.035,.04
+  );
+ }
+
+ // Qo'llar
+ const arms=[];
+ for(const side of [-1,1]){
+  const arm=add(
+   new THREE.BoxGeometry(.13,.4,.14),
+   armor,side*.29,.72,0
+  );
+  arm.rotation.z=side*.2;
+  arms.push(arm);
+ }
 
  // Qalqon
  const shield=add(
-  new THREE.CylinderGeometry(.22,.22,.08,6),
-  gold,-.36,.57,.05
+  new THREE.CylinderGeometry(.24,.24,.09,6),
+  mat(0x929ca8),-.37,.72,.05
  );
  shield.rotation.x=Math.PI/2;
 
@@ -353,36 +502,80 @@ function createWarrior(ci){
  const spear=new THREE.Group();
 
  const shaft=new THREE.Mesh(
-  new THREE.CylinderGeometry(.025,.035,.95,6),
-  mat(0x765334)
+  new THREE.CylinderGeometry(.025,.035,1.1,6),
+  mat(0x30251c)
  );
- shaft.position.y=.5;
+ shaft.position.y=.55;
  spear.add(shaft);
 
  const tip=new THREE.Mesh(
-  new THREE.ConeGeometry(.09,.25,6),
-  gold
+  new THREE.ConeGeometry(.09,.27,6),
+  mat(0xd7dce4)
  );
- tip.position.y=1.05;
+ tip.position.y=1.23;
  spear.add(tip);
 
- spear.position.set(.33,.1,0);
+ spear.position.set(.32,.15,.03);
  root.add(spear);
 
- // Oyoqlar
- const legs=[];
- for(const side of [-1,1]){
-  const leg=add(
-   new THREE.CylinderGeometry(.075,.1,.35,6),
-   dark,side*.13,.2,0
-  );
-  legs.push(leg);
- }
+ root.userData={spear,legs,arms};
 
- root.userData={spear,legs};
+ root.traverse(o=>{
+  if(o.isMesh){
+   o.castShadow=false;
+   o.frustumCulled=true;
+  }
+ });
 
  return root;
 }
+
+/* =========================================
+   5. MAXLUQ
+========================================= */
+
+function createMonster(){
+ const group=new THREE.Group();
+
+ const green=mat(0x405a36);
+ const red=new THREE.MeshBasicMaterial({color:0xff241e});
+
+ function add(geo,m,x,y,z){
+  const o=new THREE.Mesh(geo,m);
+  o.position.set(x,y,z);
+  group.add(o);
+  return o;
+ }
+
+ const body=add(
+  new THREE.SphereGeometry(.48,10,8),
+  green,0,.55,0
+ );
+ body.scale.set(1,1.3,.85);
+
+ add(
+  new THREE.BoxGeometry(.3,.12,.1),
+  mat(0x181010),0,.48,.42
+ );
+
+ for(const side of [-1,1]){
+  add(
+   new THREE.SphereGeometry(.09,8,6),
+   red,side*.17,.85,.34
+  );
+
+  add(
+   new THREE.ConeGeometry(.12,.4,6),
+   gold,side*.3,1.15,0
+  );
+ }
+
+ return group;
+}
+
+/* =========================================
+   6. JANGCHILAR
+========================================= */
 
 const warriors=[];
 const states=[];
@@ -396,60 +589,16 @@ for(let ci=0;ci<4;ci++){
   scene.add(w);
   warriors[ci].push(w);
 
-  states[ci].push({
-   step:-1,
-   done:false
-  });
+  states[ci].push({step:-1,done:false});
  }
 }
-
-/* =================================
-   4. MAXLUQ 3D MODELI
-================================= */
-
-function createMonster(){
-
- const group=new THREE.Group();
- const bodyMat=mat(0x354b3c);
-
- const body=new THREE.Mesh(
-  new THREE.SphereGeometry(.45,10,8),
-  bodyMat
- );
- body.scale.set(1,1.25,.85);
- body.position.y=.55;
- group.add(body);
-
- const eyesMat=new THREE.MeshBasicMaterial({color:0xff3322});
-
- for(const side of [-1,1]){
-  const eye=new THREE.Mesh(
-   new THREE.SphereGeometry(.085,8,6),
-   eyesMat
-  );
-  eye.position.set(side*.17,.85,.35);
-  group.add(eye);
-
-  const horn=new THREE.Mesh(
-   new THREE.ConeGeometry(.11,.35,6),
-   gold
-  );
-  horn.position.set(side*.3,1.12,0);
-  group.add(horn);
- }
-
- return group;
-}
-
-/* =================================
-   5. POZITSIYALAR
-================================= */
 
 function homePosition(ci,j){
  const p=homes[ci];
+
  return [
-  p[0]+(j%2?.65:-.65),
-  p[1]+(j<2?-.65:.65)
+  p[0]+(j%2?.55:-.55),
+  p[1]+(j<2?-.55:.55)
  ];
 }
 
@@ -460,6 +609,7 @@ function globalIndex(ci,step){
 function finishLane(ci,step){
  const entry=path[(colors[ci].start+51)%52];
  const t=(step-51)/5;
+
  return [
   entry[0]*(1-t),
   entry[1]*(1-t)
@@ -476,57 +626,162 @@ function getPosition(ci,s,j){
 function updatePositions(){
  for(let ci=0;ci<4;ci++){
   for(let j=0;j<4;j++){
-   const s=states[ci][j];
-   const p=getPosition(ci,s,j);
-   warriors[ci][j].position.set(p[0],.2,p[1]);
+   const p=getPosition(ci,states[ci][j],j);
+   warriors[ci][j].position.set(p[0],.1,p[1]);
   }
  }
 }
 
-/* =================================
-   6. OVOZ
-================================= */
+/* =========================================
+   7. OVOZLAR
+========================================= */
 
 let audio=null;
+let musicTimer=null;
+let musicStep=0;
+let musicOn=true;
 
-function sound(type){
- try{
-  audio ||= new (window.AudioContext||window.webkitAudioContext)();
-  if(audio.state==="suspended")audio.resume();
+function initAudio(){
+ if(audio)return;
 
-  const cfg={
-   dice:[260,.13],
-   walk:[140,.07],
-   spear:[110,.3],
-   boom:[65,.45],
-   rocket:[450,.3],
-   star:[880,.25],
-   trap:[75,.4]
-  }[type]||[200,.1];
+ const AC=window.AudioContext||window.webkitAudioContext;
+ if(!AC)return;
 
-  const osc=audio.createOscillator();
-  const gain=audio.createGain();
-  osc.connect(gain);
-  gain.connect(audio.destination);
-
-  const now=audio.currentTime;
-  osc.frequency.setValueAtTime(cfg[0],now);
-  osc.frequency.exponentialRampToValueAtTime(
-   Math.max(30,cfg[0]*.3),now+cfg[1]
-  );
-
-  gain.gain.setValueAtTime(.001,now);
-  gain.gain.linearRampToValueAtTime(.12,now+.02);
-  gain.gain.exponentialRampToValueAtTime(.001,now+cfg[1]);
-
-  osc.start(now);
-  osc.stop(now+cfg[1]+.03);
- }catch(e){}
+ audio=new AC();
 }
 
-/* =================================
-   7. O'YIN HOLATI
-================================= */
+function tone(freq,duration,volume=.1,type="sine",endFreq=null){
+ if(!audio)return;
+
+ const osc=audio.createOscillator();
+ const gain=audio.createGain();
+
+ osc.type=type;
+ osc.frequency.setValueAtTime(freq,audio.currentTime);
+
+ if(endFreq){
+  osc.frequency.exponentialRampToValueAtTime(
+   Math.max(25,endFreq),
+   audio.currentTime+duration
+  );
+ }
+
+ gain.gain.setValueAtTime(.001,audio.currentTime);
+ gain.gain.linearRampToValueAtTime(
+  volume,audio.currentTime+.025
+ );
+ gain.gain.exponentialRampToValueAtTime(
+  .001,audio.currentTime+duration
+ );
+
+ osc.connect(gain);
+ gain.connect(audio.destination);
+
+ osc.start();
+ osc.stop(audio.currentTime+duration+.03);
+}
+
+function noise(duration,volume=.1){
+ if(!audio)return;
+
+ const length=Math.floor(audio.sampleRate*duration);
+ const buffer=audio.createBuffer(1,length,audio.sampleRate);
+ const data=buffer.getChannelData(0);
+
+ for(let i=0;i<length;i++){
+  data[i]=(Math.random()*2-1)*(1-i/length);
+ }
+
+ const src=audio.createBufferSource();
+ const gain=audio.createGain();
+
+ src.buffer=buffer;
+ gain.gain.value=volume;
+
+ src.connect(gain);
+ gain.connect(audio.destination);
+ src.start();
+}
+
+function sound(type){
+ if(!audio)return;
+
+ if(type==="dice"){
+  tone(400,.1,.13,"square",200);
+  tone(600,.12,.1,"sine",300);
+ }
+ else if(type==="exit"){
+  tone(260,.12,.1,"triangle",420);
+  tone(450,.2,.1,"triangle",600);
+ }
+ else if(type==="walk"){
+  tone(110,.07,.045,"triangle",75);
+ }
+ else if(type==="spear"){
+  tone(700,.1,.08,"sawtooth",120);
+  setTimeout(()=>voice("vooo"),100);
+ }
+ else if(type==="boom"){
+  noise(.55,.32);
+  tone(90,.5,.2,"sawtooth",35);
+ }
+ else if(type==="monster"){
+  tone(100,.65,.16,"sawtooth",38);
+  tone(65,.6,.1,"triangle",30);
+ }
+ else if(type==="win"){
+  [523,659,784,1046].forEach((f,i)=>{
+   setTimeout(()=>tone(f,.35,.13,"sine",f*1.1),i*180);
+  });
+ }
+ else if(type==="start"){
+  [392,523,659].forEach((f,i)=>{
+   setTimeout(()=>tone(f,.25,.1),i*120);
+  });
+ }
+}
+
+function voice(word){
+ if(!audio)return;
+
+ if(word==="vooo"){
+  tone(390,.5,.16,"sawtooth",125);
+  tone(230,.48,.08,"triangle",85);
+ }
+ if(word==="monster"){
+  tone(150,.65,.12,"sawtooth",48);
+  tone(90,.5,.1,"square",35);
+ }
+}
+
+function startMusic(){
+ if(!audio||!musicOn||musicTimer)return;
+
+ const notes=[392,494,587,494,440,523,659,523];
+
+ musicTimer=setInterval(()=>{
+  if(!musicOn||!audio)return;
+  tone(notes[musicStep%notes.length],.3,.025,"sine");
+  musicStep++;
+ },480);
+}
+
+function stopMusic(){
+ if(musicTimer){
+  clearInterval(musicTimer);
+  musicTimer=null;
+ }
+}
+
+function unlockAudio(){
+ initAudio();
+ if(audio&&audio.state==="suspended")audio.resume();
+ startMusic();
+}
+
+/* =========================================
+   8. O'YIN HOLATI
+========================================= */
 
 let current=0;
 let dice=null;
@@ -534,27 +789,28 @@ let busy=false;
 let gameOver=false;
 
 function toast(text){
- const el=document.getElementById("toast");
+ const el=$("toast");
  el.textContent=text;
  el.style.opacity=1;
+
  clearTimeout(toast.timer);
- toast.timer=setTimeout(()=>el.style.opacity=0,1800);
+ toast.timer=setTimeout(()=>el.style.opacity=0,1900);
 }
 
 function updateUI(){
- document.getElementById("turn").textContent=
-  "Navbat: "+colors[current].name;
+ $("turn").textContent="Navbat: "+colors[current].name;
 
- document.getElementById("status").textContent=
-  dice===null?"Zarni tashlang":"Zar: "+dice+" — jangchini tanlang";
+ $("status").textContent=dice===null
+  ?"Zarni tashlang"
+  :"Zar: "+dice+" — jangchini tanlang";
 
- document.getElementById("roll").disabled=
-  dice!==null||busy||gameOver;
+ $("roll").disabled=dice!==null||busy||gameOver;
 
- document.getElementById("scores").innerHTML=
-  colors.map((c,i)=>
-   `<span style="color:#${c.color.toString(16)}">${c.name}: ${states[i].filter(x=>x.done).length}/4</span><br>`
-  ).join("");
+ $("scores").innerHTML=colors.map((c,i)=>
+  `<span style="color:#${c.color.toString(16)}">${c.name}: ${states[i].filter(s=>s.done).length}/4</span><br>`
+ ).join("");
+
+ drawBoard();
 }
 
 function nextTurn(extra=false){
@@ -563,18 +819,19 @@ function nextTurn(extra=false){
  updateUI();
 }
 
-/* =================================
-   8. ZAR
-================================= */
+/* =========================================
+   9. ZAR TASHLASH
+========================================= */
 
-document.getElementById("roll").onclick=()=>{
+$("roll").onclick=()=>{
  if(busy||dice!==null||gameOver)return;
 
+ unlockAudio();
  sound("dice");
+
  dice=1+Math.floor(Math.random()*6);
 
- document.getElementById("dice").textContent=
-  ["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
+ $("dice").textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][dice-1];
 
  const possible=states[current].some(s=>
   !s.done&&(s.step<0?dice===6:s.step+dice<=56)
@@ -584,35 +841,37 @@ document.getElementById("roll").onclick=()=>{
 
  if(!possible){
   toast("Bu yurishda mos jangchi yo‘q!");
-  setTimeout(()=>nextTurn(),800);
+  setTimeout(()=>nextTurn(),900);
  }
 };
 
-/* =================================
-   9. PORTLASH
-================================= */
+/* =========================================
+   10. PORTLASH EFFEKTI
+========================================= */
 
 function explosion(pos){
  sound("boom");
 
- const particles=[];
  const group=new THREE.Group();
  group.position.copy(pos);
  scene.add(group);
 
- for(let i=0;i<14;i++){
+ const particles=[];
+
+ for(let i=0;i<12;i++){
   const m=new THREE.Mesh(
-   new THREE.SphereGeometry(.08,6,5),
-   mat(i%2?0xff702d:0xffd24b)
+   new THREE.SphereGeometry(.1,6,5),
+   mat(i%2?0xff722e:0xffd447)
   );
+
   group.add(m);
 
   particles.push({
    mesh:m,
    velocity:new THREE.Vector3(
-    (Math.random()-.5)*.25,
-    Math.random()*.2,
-    (Math.random()-.5)*.25
+    (Math.random()-.5)*.23,
+    Math.random()*.23,
+    (Math.random()-.5)*.23
    )
   });
  }
@@ -620,7 +879,7 @@ function explosion(pos){
  const start=performance.now();
 
  function animate(now){
-  const t=Math.min(1,(now-start)/550);
+  const t=Math.min(1,(now-start)/500);
 
   particles.forEach(p=>{
    p.mesh.position.add(p.velocity);
@@ -630,28 +889,32 @@ function explosion(pos){
   if(t<1)requestAnimationFrame(animate);
   else scene.remove(group);
  }
+
  requestAnimationFrame(animate);
 }
 
-/* =================================
-   10. MAXLUQ HUJUMI
-================================= */
+/* =========================================
+   11. MAXLUQ TUZOG'I
+========================================= */
 
 function monsterAttack(w,done){
- sound("trap");
-
  const monster=createMonster();
+
  const x=w.position.x;
  const z=w.position.z;
 
- monster.position.set(x,-1.3,z);
+ monster.position.set(x,-1.5,z);
  scene.add(monster);
+
+ sound("monster");
+ voice("monster");
 
  const start=performance.now();
 
  function emerge(now){
-  const t=Math.min(1,(now-start)/600);
-  monster.position.y=-1.3+1.5*t;
+  const t=Math.min(1,(now-start)/650);
+
+  monster.position.y=-1.5+1.6*t;
   monster.rotation.z=Math.sin(t*5)*.08;
 
   if(t<1){
@@ -662,8 +925,9 @@ function monsterAttack(w,done){
   const swallowStart=performance.now();
 
   function swallow(time){
-   const k=Math.min(1,(time-swallowStart)/500);
-   w.position.y=.2+1.2*k;
+   const k=Math.min(1,(time-swallowStart)/550);
+
+   w.position.y=.15+1.2*k;
    w.scale.setScalar(1-k*.9);
 
    if(k<1){
@@ -671,23 +935,26 @@ function monsterAttack(w,done){
    }else{
     scene.remove(monster);
     w.scale.setScalar(1);
-    w.position.y=.2;
+    w.position.y=.1;
     done();
    }
   }
+
   requestAnimationFrame(swallow);
  }
+
  requestAnimationFrame(emerge);
 }
 
-/* =================================
-   11. RAQIBNI URISH
-================================= */
+/* =========================================
+   12. RAQIBNI TOPISH
+========================================= */
 
-function findVictim(ci,step){
- if(step<0||step>=52)return null;
+function findVictims(ci,step){
+ if(step<0||step>=52)return [];
 
  const idx=globalIndex(ci,step);
+ const result=[];
 
  for(let oi=0;oi<4;oi++){
   if(oi===ci)continue;
@@ -697,52 +964,75 @@ function findVictim(ci,step){
 
    if(!s.done&&s.step>=0&&s.step<52&&
       globalIndex(oi,s.step)===idx){
-    return {team:oi,index:oj};
+    result.push({team:oi,index:oj});
    }
   }
  }
- return null;
+
+ return result;
 }
+
+/* =========================================
+   13. NAYZA HUJUMI
+========================================= */
 
 function capture(victimTeam,victimIndex,attackerTeam,attackerIndex,done){
  const victim=warriors[victimTeam][victimIndex];
  const attacker=warriors[attackerTeam][attackerIndex];
 
  const spear=attacker.userData.spear;
- const original=spear.rotation.x;
+
+ const dx=victim.position.x-attacker.position.x;
+ const dz=victim.position.z-attacker.position.z;
+
+ const oldRotation=attacker.rotation.y;
+ attacker.rotation.y=Math.atan2(dx,dz);
 
  sound("spear");
+
  const start=performance.now();
 
  function attack(now){
-  const t=Math.min(1,(now-start)/700);
+  const t=Math.min(1,(now-start)/950);
 
-  spear.rotation.x=original-Math.sin(t*Math.PI)*1.5;
-  victim.position.y=.2+Math.sin(t*Math.PI)*.4;
+  if(t<.35){
+   const k=t/.35;
+   spear.rotation.x=-Math.sin(k*Math.PI)*1.7;
+   victim.position.y=.1+Math.sin(k*Math.PI)*.3;
+  }else{
+   const k=(t-.35)/.65;
+   victim.position.y=.1+Math.sin(k*Math.PI)*1.3;
+   victim.rotation.z=.4*k;
+  }
 
   if(t<1){
    requestAnimationFrame(attack);
   }else{
-   spear.rotation.x=original;
-   victim.position.y=.2;
+   spear.rotation.x=0;
+   attacker.rotation.y=oldRotation;
+
+   victim.rotation.set(0,0,0);
+   victim.scale.setScalar(1);
 
    explosion(victim.position.clone());
 
    states[victimTeam][victimIndex].step=-1;
    updatePositions();
+
    done();
   }
  }
+
  requestAnimationFrame(attack);
 }
 
-/* =================================
-   12. YURISH
-================================= */
+/* =========================================
+   14. YURISH ANIMATSIYASI
+========================================= */
 
 function animateWalk(w,from,to,done){
  const start=performance.now();
- const duration=145;
+ const duration=160;
 
  sound("walk");
 
@@ -750,21 +1040,26 @@ function animateWalk(w,from,to,done){
   const t=Math.min(1,(now-start)/duration);
 
   w.position.lerpVectors(from,to,t);
-  w.position.y=.2+Math.abs(Math.sin(t*Math.PI*2))*.09;
+  w.position.y=.1+Math.abs(Math.sin(t*Math.PI*2))*.12;
 
-  if(t<1)requestAnimationFrame(animate);
-  else{
+  w.rotation.z=Math.sin(t*Math.PI*2)*.07;
+
+  if(t<1){
+   requestAnimationFrame(animate);
+  }else{
    w.position.copy(to);
-   w.position.y=.2;
+   w.position.y=.1;
+   w.rotation.z=0;
    done();
   }
  }
+
  requestAnimationFrame(animate);
 }
 
-/* =================================
-   13. YURISHNI BAJARISH
-================================= */
+/* =========================================
+   15. JANGCHINI YURITISH
+========================================= */
 
 function moveWarrior(ci,j){
  if(busy||dice===null||ci!==current||gameOver)return;
@@ -773,12 +1068,12 @@ function moveWarrior(ci,j){
  if(s.done)return;
 
  if(s.step<0&&dice!==6){
-  toast("Jangchini chiqarish uchun 6 kerak!");
+  toast("Uydan chiqish uchun 6 kerak!");
   return;
  }
 
  if(s.step>=0&&s.step+dice>56){
-  toast("Finish uchun aniq son kerak!");
+  toast("Finishga aniq son kerak!");
   return;
  }
 
@@ -792,16 +1087,21 @@ function moveWarrior(ci,j){
 
  function finishGame(){
   s.done=true;
-  w.position.set(0,.25,0);
+  w.position.set(0,.3,0);
 
   busy=false;
+
   toast("🏆 Jangchi marraga yetdi!");
 
   if(states[ci].every(x=>x.done)){
    gameOver=true;
-   toast("🏆 "+colors[ci].name+" G‘OLIB!");
    dice=null;
    updateUI();
+
+   stopMusic();
+   sound("win");
+
+   toast("🏆 "+colors[ci].name+" G‘OLIB!");
   }else{
    nextTurn(rolled===6);
   }
@@ -815,43 +1115,45 @@ function moveWarrior(ci,j){
 
   const idx=s.step<52?globalIndex(ci,s.step):-1;
 
+  // Maxluq faqat tuzoqda
   if(traps.includes(idx)){
-   toast("👹 Maxluq hujum qilmoqda!");
+   toast("👹 MAXLUQ HUJUM QILDI!");
 
    monsterAttack(w,()=>{
     s.step=-1;
     updatePositions();
+    drawBoard();
+
     busy=false;
     nextTurn(rolled===6);
    });
    return;
   }
 
-  if(rockets.includes(idx)){
-   sound("rocket");
-   toast("🚀 Raketa! 5 qadam oldinga!");
+  // Oddiy katakda raqibni urish
+  const victims=findVictims(ci,s.step);
 
-   s.step=Math.min(56,s.step+5);
-   updatePositions();
+  if(victims.length){
+   toast("⚔ NAYZA HUJUMI!");
 
-   if(s.step===56){
-    finishGame();
-    return;
+   let n=0;
+
+   function hitNext(){
+    if(n>=victims.length){
+     finishMove();
+     return;
+    }
+
+    const v=victims[n++];
+    capture(v.team,v.index,ci,j,hitNext);
    }
-  }
 
-  if(stars.includes(idx)){
-   sound("star");
-   toast("⭐ Yulduz! Yana bir yurish!");
-
-   updatePositions();
-   busy=false;
-   dice=null;
-   updateUI();
+   hitNext();
    return;
   }
 
   updatePositions();
+
   busy=false;
   nextTurn(rolled===6);
  }
@@ -865,18 +1167,7 @@ function moveWarrior(ci,j){
     return;
    }
 
-   const victim=findVictim(ci,target);
-
-   if(victim){
-    toast("⚔ Nayza hujumi!");
-
-    capture(
-     victim.team,victim.index,
-     ci,j,finishMove
-    );
-   }else{
-    finishMove();
-   }
+   finishMove();
    return;
   }
 
@@ -887,17 +1178,23 @@ function moveWarrior(ci,j){
    :path[globalIndex(ci,step)];
 
   const from=w.position.clone();
-  const to=new THREE.Vector3(p[0],.2,p[1]);
+  const to=new THREE.Vector3(p[0],.1,p[1]);
 
   animateWalk(w,from,to,oneStep);
+ }
+
+ // Uydan chiqish
+ if(s.step<0){
+  sound("exit");
+  toast("⚔ Jangchi jangga chiqdi!");
  }
 
  oneStep();
 }
 
-/* =================================
-   14. JANGCHINI TANLASH
-================================= */
+/* =========================================
+   16. JANGCHINI BOSISH
+========================================= */
 
 const raycaster=new THREE.Raycaster();
 const pointer=new THREE.Vector2();
@@ -928,38 +1225,69 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  }
 });
 
-/* =================================
-   15. MOSLASH VA TEZLIK
-================================= */
+/* =========================================
+   17. KAMERA VA O'LCHAM
+========================================= */
 
 function resize(){
- drawBoard();
-
  const aspect=innerWidth/innerHeight;
- const viewH=15/(Math.min(innerWidth,innerHeight)*.82/Math.min(innerWidth,innerHeight));
 
- camera.left=-viewH*aspect/2;
- camera.right=viewH*aspect/2;
- camera.top=viewH/2;
- camera.bottom=-viewH/2;
+ const view=17;
+
+ camera.left=-view*aspect/2;
+ camera.right=view*aspect/2;
+ camera.top=view/2;
+ camera.bottom=-view/2;
+
  camera.updateProjectionMatrix();
 
  renderer.setSize(innerWidth,innerHeight);
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.2));
+
+ drawBoard();
 }
 
 addEventListener("resize",resize);
 
-/* =================================
-   16. YAKUNIY ISHGA TUSHIRISH
-================================= */
+/* =========================================
+   18. QAYTA BOSHLASH
+========================================= */
+
+function restart(){
+ current=0;
+ dice=null;
+ busy=false;
+ gameOver=false;
+
+ $("dice").textContent="🎲";
+
+ for(let ci=0;ci<4;ci++){
+  for(let j=0;j<4;j++){
+   states[ci][j].step=-1;
+   states[ci][j].done=false;
+
+   warriors[ci][j].scale.setScalar(1);
+   warriors[ci][j].rotation.set(0,0,0);
+  }
+ }
+
+ updatePositions();
+ updateUI();
+ stopMusic();
+
+ toast("Yangi jang boshlandi!");
+}
+
+/* =========================================
+   19. YAKUNIY ISHGA TUSHIRISH
+========================================= */
 
 let lastFrame=0;
+let running=true;
 
 function render(now){
  requestAnimationFrame(render);
 
- // 30 FPS cheklovi — telefon uchun yengilroq
  if(now-lastFrame<33)return;
  lastFrame=now;
 
