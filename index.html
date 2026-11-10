@@ -3,278 +3,260 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#101522">
-<title>3D Jangchilar — Stol o‘yini</title>
+<meta name="theme-color" content="#101a2c">
+<title>3D Jangchilar</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101522;font-family:system-ui,Arial;color:#fff;touch-action:manipulation}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101a2c;color:white;font-family:system-ui,Arial;touch-action:manipulation}
 #game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
-#top{position:fixed;top:env(safe-area-inset-top,8px);left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;pointer-events:none;gap:8px}
-.pill{background:#101522d9;border:1px solid #ffffff28;border-radius:14px;padding:8px 12px;font-weight:800;font-size:13px;box-shadow:0 4px 18px #0005}
-#turn{display:flex;align-items:center;gap:8px}
-.dot{width:12px;height:12px;border-radius:50%;display:inline-block;background:var(--c)}
-#bottom{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:10px;padding:0 12px}
-button{border:0;border-radius:15px;padding:13px 20px;font-size:16px;font-weight:900;color:#fff;background:linear-gradient(#ffca45,#e58a12);box-shadow:0 5px 0 #98520a,0 8px 20px #0007;cursor:pointer}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #98520a}
-button:disabled{opacity:.45;filter:grayscale(.5)}
-#hint{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#101522dc;border:1px solid #ffffff30;border-radius:12px;padding:8px 12px;font-size:12px;text-align:center;max-width:90%;white-space:normal}
-#overlay{position:fixed;inset:0;background:linear-gradient(135deg,#101522f5,#17253af5);display:flex;align-items:center;justify-content:center;padding:24px;z-index:5}
-.panel{max-width:390px;width:100%;text-align:center;background:#202c40;border:1px solid #ffffff30;border-radius:24px;padding:26px 22px;box-shadow:0 18px 60px #0009}
-.panel h1{font-size:25px;margin:0 0 10px}.panel p{color:#d5deeb;line-height:1.5;font-size:14px}
-#rotateIcon{font-size:48px;margin:8px}
-#message{min-height:22px;color:#ffe39a;font-weight:800;font-size:13px}
-#restart{background:linear-gradient(#7c9cff,#405bd4);box-shadow:0 5px 0 #26398e,0 8px 20px #0007}
-@media (orientation:portrait){#portraitTip{display:block!important}}
+#hud{position:fixed;top:env(safe-area-inset-top,8px);left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:9px 12px;pointer-events:none}
+.badge{background:#111827df;border:1px solid #ffffff35;border-radius:16px;padding:8px 13px;font-size:clamp(12px,2vw,17px);font-weight:850;box-shadow:0 4px 15px #0005}
+#turn{display:flex;align-items:center;gap:8px}.dot{width:13px;height:13px;border-radius:50%;background:var(--team)}
+#controls{position:fixed;left:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 13px);display:flex;gap:9px;align-items:end}
+button{border:0;border-radius:16px;padding:12px 17px;font-weight:900;font-size:clamp(13px,2vw,16px);color:#fff;background:linear-gradient(#ffd45d,#df8c13);box-shadow:0 5px 0 #8a4d0b,0 8px 18px #0006}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #8a4d0b}
+button:disabled{opacity:.55;filter:grayscale(.4)}
+#diceFace{font-size:22px;margin-right:5px}
+#overlay{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:20px;background:#101827f2}
+.panel{max-width:390px;width:100%;padding:25px 22px;border-radius:24px;text-align:center;background:#25344c;border:1px solid #ffffff30;box-shadow:0 18px 55px #0009}
+.panel h1{font-size:24px;margin:0 0 8px}.panel p{color:#dbe5f2;font-size:14px;line-height:1.5}
+#start{background:linear-gradient(#82a5ff,#3d5bd3);box-shadow:0 5px 0 #263b8b}
+#rotate{font-size:46px;margin:5px}
+@media(orientation:portrait){#portrait{display:block!important}}
 </style>
 </head>
 <body>
 <div id="game"></div>
-<div id="top">
- <div class="pill">⚔️ 3D JANGCHILAR</div>
- <div class="pill" id="turn"><span class="dot" id="turnDot"></span><span id="turnText">Yashil navbati</span></div>
+<div id="hud">
+ <div class="badge">⚔️ 3D JANGCHILAR</div>
+ <div class="badge" id="turn"><span class="dot" id="dot"></span><span id="turnName">Yashil navbati</span></div>
 </div>
-<div id="hint">Kubikni tashlang, so‘ng yuradigan jangchini tanlang.</div>
-<div id="bottom">
- <button id="dice">🎲 KUBIK: 6</button>
- <button id="restart">↻ QAYTA</button>
-</div>
-<div id="overlay">
- <div class="panel">
-  <div id="rotateIcon">📱 ↻</div>
-  <h1>Telefonni yonboshlating</h1>
-  <p>Bu 3D o‘yin gorizontal holatda o‘ynash uchun mo‘ljallangan. Telefonni yonboshlating va boshlash tugmasini bosing.</p>
-  <p id="portraitTip" style="display:none;color:#ffd36b">Iltimos, telefonni gorizontal holatga aylantiring.</p>
-  <button id="start">▶ O‘YINNI BOSHLASH</button>
- </div>
-</div>
+<div id="controls"><button id="dice"><span id="diceFace">🎲</span>KUBIK TASHLASH</button></div>
+<div id="overlay"><div class="panel">
+ <div id="rotate">📱 ↻</div><h1>Telefonni yonboshlating</h1>
+ <p>O‘yin gorizontal ekranda ishlaydi. Telefonni yonboshlatib, boshlash tugmasini bosing.</p>
+ <p id="portrait" style="display:none;color:#ffdc83">Telefonni gorizontal holatga aylantiring.</p>
+ <button id="start">▶ O‘YINNI BOSHLASH</button>
+</div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 (()=>{
 'use strict';
 const COLORS=[
- {name:'Yashil',hex:0x18c957,css:'#18c957',dark:0x087a30},
- {name:'Qizil',hex:0xf23838,css:'#f23838',dark:0x9d1717},
- {name:'Sariq',hex:0xffc51b,css:'#ffc51b',dark:0x9d7100},
- {name:'Ko‘k',hex:0x2588ff,css:'#2588ff',dark:0x1450a0}
+ {name:'Yashil',hex:0x16c65b,css:'#16c65b',dark:0x087d35},
+ {name:'Qizil',hex:0xf02e36,css:'#f02e36',dark:0x991c25},
+ {name:'Sariq',hex:0xffc51c,css:'#ffc51c',dark:0x987000},
+ {name:'Ko‘k',hex:0x2388ff,css:'#2388ff',dark:0x174b9a}
 ];
-const mount=document.getElementById('game'), hint=document.getElementById('hint');
-let scene,camera,renderer,clock,raycaster,mouse,teams=[],tiles=[],pawns=[],selected=null;
-let current=0,rolled=false,diceValue=6,busy=false,started=false;
-const STAR=new Set([3,9,15,21]), STARTS=[0,6,12,18];
-const mat=(c,r=.7,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const mats={grass:mat(0x56b82e),soil:mat(0x8b4c20),stone:mat(0xaaaeb7),wood:mat(0x9a5725),gold:mat(0xffc21c,.35),white:mat(0xf7e8c7),black:mat(0x252b36),steel:mat(0x9ba8b9,.3,.65)};
-function box(w,h,d,material,x,y,z,group=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;group.add(o);return o}
-function cylinder(rt,rb,h,material,x,y,z,group=scene,segments=12){const o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,segments),material);o.position.set(x,y,z);o.castShadow=true;group.add(o);return o}
-function sphere(r,material,x,y,z,group=scene){const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),material);o.position.set(x,y,z);o.castShadow=true;group.add(o);return o}
-function makePath(){
- const a=[];
- for(let x=-3;x<=3;x++)a.push([x,-3]);
- for(let z=-2;z<=3;z++)a.push([3,z]);
- for(let x=2;x>=-3;x--)a.push([x,3]);
- for(let z=2;z>=-2;z--)a.push([-3,z]);
- return a;
-}
-const ring=makePath();
+// Teams are arranged around the four ends of the plus-shaped board.
+const TEAMS=[
+ {home:[-5.5,0],dir:[1,0],side:1},   // green, west -> centre
+ {home:[5.5,0],dir:[-1,0],side:-1}, // red, east -> centre
+ {home:[0,-5.5],dir:[0,1],side:1},  // yellow, north -> centre
+ {home:[0,5.5],dir:[0,-1],side:-1}  // blue, south -> centre
+];
+let scene,camera,renderer,clock,raycaster,mouse;
+let pawns=[],tiles=[],current=0,rolled=false,rollValue=0,busy=false,started=false;
+const mount=document.getElementById('game');
+const material=(c,r=.75,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
+const M={grass:material(0x69c52c),earth:material(0x98531f),stone:material(0x8d9aa8),wood:material(0xb77739),gold:material(0xffc52d,.3,.3),steel:material(0xaab8c8,.3,.6),dark:material(0x263343),skin:material(0xf1bd8a)};
+function cube(parent,w,h,d,mat,x,y,z){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function ball(parent,r,mat,x,y,z){let o=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),mat);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
+function cyl(parent,rt,rb,h,mat,x,y,z,n=12){let o=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,n),mat);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o}
 function init(){
- scene=new THREE.Scene();scene.background=new THREE.Color(0x11131b);scene.fog=new THREE.Fog(0x11131b,15,28);
- camera=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,.1,100);
- camera.position.set(9,13,11);camera.lookAt(0,0,0);
- renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);
- renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
- renderer.outputColorSpace=THREE.SRGBColorSpace;mount.appendChild(renderer.domElement);
- scene.add(new THREE.HemisphereLight(0xcfe5ff,0x543018,2));
- const sun=new THREE.DirectionalLight(0xffe0a1,2.6);sun.position.set(-5,10,7);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
- const ground=box(30,.4,30,mat(0x151a20),0,-.65,0);ground.receiveShadow=true;
- // Floating grassy island and stone rim
- box(8,.55,8,mats.soil,0,-.25,0);
- box(8.15,.18,8.15,mats.grass,0,.04,0);
- // Outer path tiles
- ring.forEach((p,i)=>{
-  const [x,z]=p;let c=mat(0xc9965d);
-  if(STAR.has(i))c=mat(0xffc21c);
-  const t=box(.94,.22,.94,c,x,.28,z);t.userData={index:i};tiles.push(t);
-  if(STAR.has(i))makeStar(x,.405,z);
- });
- // Colored start zones on ring
- STARTS.forEach((idx,team)=>{const [x,z]=ring[idx];box(.78,.24,.78,mat(COLORS[team].hex),x,.31,z)});
- // Home lanes lead toward center, four differently colored
- teams=COLORS.map((cfg,id)=>({cfg,id,pawns:[],base:basePos(id)}));
- teams.forEach(t=>{
-  const start=ring[STARTS[t.id]];
-  for(let k=1;k<=4;k++){
-   const f=k/5,x=start[0]*(1-f),z=start[1]*(1-f);
-   box(.86,.22,.86,mat(t.cfg.hex),x,.29,z);
-  }
- });
- // Center treasure platform
- cylinder(1.15,1.25,.38,mat(0x76502d),0,.32,0,scene,8);
- cylinder(.9,.98,.18,mat(0xdeb34c),0,.58,0,scene,8);
- const chest=makeChest();chest.position.set(0,.75,0);scene.add(chest);
- // Bases and pawns
- teams.forEach(t=>createBase(t));
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x138de0);scene.fog=new THREE.Fog(0x138de0,19,31);
+ camera=new THREE.PerspectiveCamera(34,innerWidth/innerHeight,.1,80);camera.position.set(8.5,13.5,9.5);camera.lookAt(0,0,0);
+ renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.4));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;mount.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xe6f6ff,0x6a4a25,2.1));
+ let sun=new THREE.DirectionalLight(0xfff0d2,2.4);sun.position.set(-6,12,8);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+ cube(scene,30,.5,30,material(0x168bd5),0,-.85,0);
+ buildIsland();buildBoard();buildBases();makeTreasure();
  raycaster=new THREE.Raycaster();mouse=new THREE.Vector2();clock=new THREE.Clock();
- addEventListener('resize',resize);
- renderer.domElement.addEventListener('pointerdown',onTap);
- animate();
+ renderer.domElement.addEventListener('pointerdown',tap);
+ addEventListener('resize',resize);animate();refreshHUD();
 }
-function basePos(id){return [[-5,0],[5,0],[0,-5],[0,5]][id]}
-function makeStar(x,y,z){
- const s=new THREE.Shape();for(let i=0;i<10;i++){let a=Math.PI/2+i*Math.PI/5,r=i%2?.13:.28;let px=Math.cos(a)*r,py=Math.sin(a)*r;i?s.lineTo(px,py):s.moveTo(px,py)}s.closePath();
- const g=new THREE.ShapeGeometry(s);const m=new THREE.Mesh(g,mat(0xffffff));m.rotation.x=-Math.PI/2;m.position.set(x,y,z);scene.add(m);
-}
-function makeChest(){
- const g=new THREE.Group();box(.9,.45,.65,mat(0x7b31c9,.3),0,0,0,g);
- box(.96,.12,.7,mat(0xffc21c,.3,.4),0,.25,0,g);
- box(.12,.5,.72,mat(0xffc21c,.3,.4),0,.05,0,g);
- sphere(.09,mat(0x39c9ff,.25,.4),0,.12,.37,g);return g;
-}
-function createBase(t){
- const [x,z]=t.base,c=t.cfg.hex;
- box(2.6,.5,2.6,mats.soil,x,.05,z);
- box(2.72,.16,2.72,mats.grass,x,.37,z);
- box(2.35,.25,2.35,mat(0x9ba2ac),x,.52,z);
- box(2.05,.18,2.05,mat(c),x,.72,z);
- // Four pawn starting spots
- const offsets=[[-.48,-.48],[.48,-.48],[-.48,.48],[.48,.48]];
- offsets.forEach((off,i)=>{
-  const pawn=createPawn(t.id,i,x+off[0],z+off[1]);t.pawns.push(pawn);pawns.push(pawn);
+function buildIsland(){
+ // Plus-shaped floating landmass, with three tiles across every arm.
+ const cells=[];
+ for(let z=-6;z<=6;z++)for(let x=-6;x<=6;x++)if(Math.abs(x)<=1||Math.abs(z)<=1)cells.push([x,z]);
+ cells.forEach(([x,z])=>{
+  cube(scene,.98,.35,.98,M.earth,x,-.15,z);
+  cube(scene,1.02,.14,1.02,M.grass,x,.08,z);
  });
- // flags
- for(let i=-1;i<=1;i+=2){
-  cylinder(.045,.045,1.3,mat(0x644126),x+i*1.02,1.2,z-1.02);
-  const flag=new THREE.Mesh(new THREE.PlaneGeometry(.5,.34),mat(c));flag.position.set(x+i*1.02+.23,1.67,z-1.02);scene.add(flag);
- }
+ // Small stone edging around the central junction.
+ cube(scene,3.05,.28,3.05,material(0x9ba7b1),0,.2,0);
+ cube(scene,2.92,.16,2.92,material(0x5da82c),0,.39,0);
 }
-function createPawn(team,num,x,z){
- const g=new THREE.Group();scene.add(g);g.position.set(x,.82,z);
- const color=mat(COLORS[team].hex,.45),dark=mat(COLORS[team].dark),skin=mat(0xf1bd8c),helmet=mat(0x8795a8,.3,.5);
- cylinder(.23,.28,.48,color,0,.25,0,g);
- sphere(.2,skin,0,.62,0,g);
- sphere(.27,helmet,0,.79,0,g);
- // helmet crest
- box(.34,.06,.12,dark,0,.97,0,g);
- // face visor
- box(.23,.09,.035,mat(0x202c39),0,.68,.19,g);
- // feet
- box(.15,.15,.24,mats.black,-.13,-.04,.05,g);box(.15,.15,.24,mats.black,.13,-.04,.05,g);
- // spear held in front
- const spear=new THREE.Group();g.add(spear);
- cylinder(.035,.035,.95,mat(0x59351c),.32,.55,.12,spear);
- const tip=new THREE.Mesh(new THREE.ConeGeometry(.1,.28,6),mats.steel);tip.position.set(.32,1.16,.12);spear.add(tip);
- // shield
- cylinder(.16,.16,.08,mat(0xffc34d,.3,.35),-.29,.43,.12,g,8).rotation.z=Math.PI/2;
- g.userData={team,num,progress:-1,home:true,spear,base:{x,z},anim:null,baseOffset:{x:x-teams[team].base[0],z:z-teams[team].base[1]}};
+function pathFor(id){
+ // Each player enters along one of the two outside lanes, then reaches
+ // their own middle finish row. The three-wide arm is kept visibly clear.
+ const t=TEAMS[id],out=[];
+ for(let k=0;k<5;k++){
+  const x=t.dir[0]*(-5+k),z=t.dir[1]*(-5+k);
+  // The outer/side lane is the actual travel lane; centre lane is finish.
+  out.push([x+t.side*(-t.dir[1]),z+t.side*t.dir[0]]);
+ }
+ for(let k=1;k<=4;k++)out.push([t.dir[0]*(-1+k*.0),t.dir[1]*(-1+k*.0)]); // replaced below with finish steps
+ // finish row from inner edge into central goal
+ out.splice(5);
+ for(let k=1;k<=4;k++){
+  let x=t.dir[0]*(-1+k*.25),z=t.dir[1]*(-1+k*.25);
+  out.push([x,z]);
+ }
+ return out;
+}
+const paths=TEAMS.map((_,i)=>pathFor(i));
+function buildBoard(){
+ // Common path cells on the two side strips. Middle strips are the coloured finish lanes.
+ TEAMS.forEach((t,id)=>{
+  for(let k=0;k<5;k++){
+   const x=t.dir[0]*(-6+k),z=t.dir[1]*(-6+k);
+   for(let lane=-1;lane<=1;lane++){
+    const px=x+(t.dir[1]*lane),pz=z-(t.dir[0]*lane);
+    let c=material(0xc99b66);
+    if(lane===0)c=material(COLORS[id].hex);
+    if(k===0&&lane===0)c=material(COLORS[id].dark);
+    cube(scene,.9,.19,.9,c,px,.28,pz);
+   }
+  }
+  // Finish lane: coloured central row from the home-side edge toward the centre.
+  for(let k=1;k<=4;k++){
+   let x=t.dir[0]*(-1+k*.22),z=t.dir[1]*(-1+k*.22);
+   cube(scene,.88,.2,.88,material(COLORS[id].hex),x,.31,z);
+  }
+  // Star tile on each arm's outer side.
+  let sx=t.dir[0]*-4.5+t.dir[1]*1,sz=t.dir[1]*-4.5-t.dir[0]*1;
+  cube(scene,.9,.21,.9,M.gold,sx,.31,sz);makeStar(sx,.43,sz);
+ });
+ // Make the central finish platform
+ cyl(scene,1.08,1.25,.35,material(0x80502a),0,.53,0,8);
+ cyl(scene,.8,.95,.15,M.gold,0,.78,0,8);
+}
+function makeStar(x,y,z){
+ const sh=new THREE.Shape();for(let i=0;i<10;i++){let a=Math.PI/2+i*Math.PI/5,r=i%2?.12:.25,px=Math.cos(a)*r,py=Math.sin(a)*r;i?sh.lineTo(px,py):sh.moveTo(px,py)}sh.closePath();
+ let mesh=new THREE.Mesh(new THREE.ShapeGeometry(sh),material(0xffffff));mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y,z);scene.add(mesh);
+}
+function buildBases(){
+ TEAMS.forEach((t,id)=>{
+  const [x,z]=t.home,c=COLORS[id].hex;
+  cube(scene,2.5,.55,2.5,M.earth,x,.03,z);
+  cube(scene,2.62,.16,2.62,M.grass,x,.38,z);
+  cube(scene,2.28,.25,2.28,material(0x8895a5),x,.57,z);
+  cube(scene,2.05,.18,2.05,material(c),x,.79,z);
+  // Four miniature soldiers, placed in a square inside the home.
+  [[-.48,-.48],[.48,-.48],[-.48,.48],[.48,.48]].forEach((off,n)=>{
+   const pawn=makePawn(id,n,x+off[0],z+off[1]);pawns.push(pawn);
+  });
+  // Flag poles
+  [-1,1].forEach(side=>{
+   cyl(scene,.035,.035,1.15,M.wood,x+side*1.02,1.38,z-1.02);
+   let flag=new THREE.Mesh(new THREE.PlaneGeometry(.48,.3),material(c));flag.position.set(x+side*1.02+.2,1.78,z-1.02);scene.add(flag);
+  });
+ });
+}
+function makePawn(team,num,x,z){
+ const g=new THREE.Group();scene.add(g);g.position.set(x,.95,z);
+ const c=material(COLORS[team].hex),d=material(COLORS[team].dark),helmet=material(0x8393a5,.3,.55);
+ cyl(g,.22,.27,.48,c,0,.24,0);ball(g,.19,M.skin,0,.59,0);ball(g,.26,helmet,0,.78,0);
+ cube(g,.34,.06,.13,d,0,.96,0);cube(g,.23,.09,.04,M.dark,0,.65,.2);
+ cube(g,.16,.14,.22,M.dark,-.13,-.03,.05);cube(g,.16,.14,.22,M.dark,.13,-.03,.05);
+ // Spear and shield
+ const weapon=new THREE.Group();g.add(weapon);cyl(weapon,.028,.028,.9,M.wood,.3,.55,.12);let tip=new THREE.Mesh(new THREE.ConeGeometry(.09,.25,6),M.steel);tip.position.set(.3,1.12,.12);weapon.add(tip);
+ cyl(g,.15,.15,.07,M.gold,-.28,.42,.13,8).rotation.z=Math.PI/2;
+ const glow=new THREE.Mesh(new THREE.CircleGeometry(.48,24),new THREE.MeshBasicMaterial({color:COLORS[team].hex,transparent:true,opacity:0,side:THREE.DoubleSide}));glow.rotation.x=-Math.PI/2;glow.position.y=-.38;g.add(glow);
+ g.userData={team,num,progress:-1,home:true,weapon,glow,base:{x,z},homeOffset:{x:x-TEAMS[team].home[0],z:z-TEAMS[team].home[1]},phase:Math.random()*6.28};
  return g;
 }
-function positionFor(p){
- const t=p.userData.team,prog=p.userData.progress;
- if(prog<0){const [bx,bz]=teams[t].base;return {x:bx+p.userData.baseOffset.x,z:bz+p.userData.baseOffset.z}}
- if(prog<24){const q=ring[(STARTS[t]+prog)%24];return {x:q[0],z:q[1]}}
- const start=ring[STARTS[t]],lane=prog-23, f=lane/5;
- return {x:start[0]*(1-f),z:start[1]*(1-f)};
+function makeTreasure(){
+ const g=new THREE.Group();scene.add(g);g.position.set(0,.9,0);
+ cube(g,.8,.38,.62,material(0x7334b9,.35),0,0,0);cube(g,.86,.12,.68,M.gold,0,.23,0);cube(g,.1,.44,.7,M.gold,0,.08,0);
+ ball(g,.08,material(0x36d5ff,.25,.5),0,.08,.36);
 }
-function setPawnPos(p){const q=positionFor(p);p.position.set(q.x,.82,q.z)}
-function resize(){if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5))}
-function onTap(e){
- if(!started||busy||!rolled)return;
- const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
- raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(pawns,true);
- if(!hits.length)return;let o=hits[0].object;while(o&&o.userData.team===undefined&&o.parent)o=o.parent;
- if(!o||o.userData.team===undefined)return;
- if(o.userData.team!==current)return;
- if(!canMove(o,diceValue)){hint.textContent='Bu jangchi hozir yura olmaydi.';return}
- movePawn(o);
+function posOf(p){
+ const t=TEAMS[p.userData.team],pr=p.userData.progress;
+ if(pr<0)return {x:p.userData.base.x,z:p.userData.base.z};
+ if(pr<5){const x=t.dir[0]*(-5+pr),z=t.dir[1]*(-5+pr);return {x:x+t.dir[1]*(-t.side),z:z-t.dir[0]*(-t.side)}}
+ const f=Math.min(1,(pr-4)/4);return {x:t.dir[0]*(-1+f),z:t.dir[1]*(-1+f)};
 }
-function canMove(p,n){const pr=p.userData.progress;if(pr<0)return n===6;if(pr+n>28)return false;return true}
-function updateUI(){
- document.getElementById('turnText').textContent=COLORS[current].name+' navbati';
- document.getElementById('turnDot').style.background=COLORS[current].css;
- document.getElementById('dice').textContent=rolled?'🎲 '+diceValue+' — JANGCHINI TANLANG':'🎲 KUBIK TASHLASH';
+function setPos(p){let q=posOf(p);p.position.set(q.x,.95,q.z)}
+function resize(){if(!camera)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.4))}
+function refreshHUD(){
+ document.getElementById('turnName').textContent=COLORS[current].name+' navbati';
+ document.getElementById('dot').style.background=COLORS[current].css;
  document.getElementById('dice').disabled=busy||rolled;
+ document.getElementById('dice').innerHTML=rolled?'🎲 '+rollValue+' — JANGCHINI TANLANG':'<span id="diceFace">🎲</span>KUBIK TASHLASH';
+ pawns.forEach(p=>p.userData.glow.material.opacity=(p.userData.team===current&&p.userData.progress<0)?.5:0);
+}
+function tap(e){
+ if(!started||busy||!rolled)return;
+ const r=renderer.domElement.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-(e.clientY-r.top)/r.height*2+1;
+ raycaster.setFromCamera(mouse,camera);let hits=raycaster.intersectObjects(pawns,true);if(!hits.length)return;
+ let obj=hits[0].object;while(obj&&obj.userData.team===undefined&&obj.parent)obj=obj.parent;
+ if(!obj||obj.userData.team!==current)return;
+ if(obj.userData.progress<0&&rollValue!==6){return}
+ if(obj.userData.progress>=0&&obj.userData.progress+rollValue>8)return;
+ move(obj);
 }
 function roll(){
  if(!started||busy||rolled)return;
- diceValue=1+Math.floor(Math.random()*6);rolled=true;
- hint.textContent='Kubikda '+diceValue+' tushdi. Yuradigan jangchini bosing.';
- updateUI();
- const possible=teams[current].pawns.filter(p=>canMove(p,diceValue));
- if(!possible.length){hint.textContent='Yurish imkoni yo‘q. Keyingi jamoa.';setTimeout(nextTurn,1000)}
- else if(possible.length===1){setTimeout(()=>movePawn(possible[0]),450)}
+ rollValue=1+Math.floor(Math.random()*6);rolled=true;refreshHUD();
+ const options=pawns.filter(p=>p.userData.team===current&&(p.userData.progress<0?rollValue===6:p.userData.progress+rollValue<=8));
+ if(!options.length){setTimeout(nextTurn,850);return}
+ if(options.length===1)setTimeout(()=>move(options[0]),400);
 }
-function movePawn(p){
- if(busy||!rolled)return;busy=true;selected=p;
- const old=p.userData.progress;
- if(old<0)p.userData.progress=0;else p.userData.progress+=diceValue;
- const target=positionFor(p);
- animatePawn(p,target,()=>{
-  const progress=p.userData.progress;
-  if(progress<24){
-   const ringIndex=(STARTS[p.userData.team]+progress)%24;
-   if(!STAR.has(ringIndex))resolveCombat(p,ringIndex,()=>finishMove(p));
-   else finishMove(p);
-  }else finishMove(p);
+function move(p){
+ if(busy||!rolled)return;busy=true;
+ p.userData.progress=p.userData.progress<0?0:p.userData.progress+rollValue;
+ const q=posOf(p);animateTo(p,q,()=>{
+  // Safe stars do not trigger combat. Otherwise knock enemy back to its home.
+  if(p.userData.progress<5){
+   const enemy=pawns.find(v=>v!==p&&v.userData.team!==p.userData.team&&v.userData.progress>=0&&sameTile(posOf(v),q));
+   if(enemy&&!isStar(q)){combat(p,enemy,finish)}
+   else finish();
+  }else finish();
  });
 }
-function animatePawn(p,target,done){
- const from=p.position.clone(),to=new THREE.Vector3(target.x,.82,target.z),start=performance.now(),duration=520;
- function tick(now){const f=Math.min(1,(now-start)/duration);p.position.lerpVectors(from,to,f);p.position.y=.82+Math.sin(f*Math.PI)*.25;p.rotation.y=Math.sin(f*Math.PI*2)*.18;
- if(f<1)requestAnimationFrame(tick);else{p.position.copy(to);p.rotation.y=0;done()}}
- requestAnimationFrame(tick);
+function sameTile(a,b){return Math.abs(a.x-b.x)<.08&&Math.abs(a.z-b.z)<.08}
+function isStar(q){return (Math.abs(q.x)===4.5&&Math.abs(q.z)===1)||(Math.abs(q.z)===4.5&&Math.abs(q.x)===1)}
+function animateTo(p,q,done){
+ const from=p.position.clone(),to=new THREE.Vector3(q.x,.95,q.z),start=performance.now(),dur=520;
+ function step(now){let f=Math.min(1,(now-start)/dur);p.position.lerpVectors(from,to,f);p.position.y=.95+Math.sin(f*Math.PI)*.3;if(f<1)requestAnimationFrame(step);else{p.position.copy(to);done()}}requestAnimationFrame(step);
 }
-function resolveCombat(attacker,ringIndex,done){
- const victims=pawns.filter(v=>v!==attacker&&v.userData.progress>=0&&v.userData.progress<24&&
-  (STARTS[v.userData.team]+v.userData.progress)%24===ringIndex&&v.userData.team!==attacker.userData.team);
- if(!victims.length){done();return}
- const victim=victims[0],spear=attacker.userData.spear;
- hint.textContent='⚔️ Nayza zarbasi! Raqib uyiga qaytmoqda!';
- const from=spear.rotation.x,begin=performance.now();
- function thrust(now){let f=Math.min(1,(now-begin)/420);spear.rotation.x=Math.sin(f*Math.PI)*-1.15;
- if(f<1)requestAnimationFrame(thrust);else{
-  spear.rotation.x=from;
-  const vStart=victim.position.clone(),t0=performance.now();
-  function pop(n){let k=Math.min(1,(n-t0)/520);victim.position.y=.82+Math.sin(k*Math.PI)*1.8;victim.scale.setScalar(1-k*.85);
-   if(k<1)requestAnimationFrame(pop);else{
-    victim.userData.progress=-1;victim.scale.setScalar(1);setPawnPos(victim);
-    // Small harmless sparkle burst
-    const burst=new THREE.Group();scene.add(burst);burst.position.copy(vStart);
-    for(let i=0;i<9;i++){const s=sphere(.07,mat(0xffd35b),0,0,0,burst);s.userData.v=new THREE.Vector3((Math.random()-.5)*.09,Math.random()*.12,(Math.random()-.5)*.09)}
-    let b0=performance.now();function sparkle(n){let k=Math.min(1,(n-b0)/380);burst.children.forEach(s=>{s.position.addScaledVector(s.userData.v,1);s.material.opacity=1-k;s.material.transparent=true});if(k<1)requestAnimationFrame(sparkle);else scene.remove(burst)}
-    requestAnimationFrame(sparkle);done();
-   }}
+function combat(attacker,victim,done){
+ const weapon=attacker.userData.weapon;const begin=performance.now();
+ function jab(now){let f=Math.min(1,(now-begin)/330);weapon.rotation.x=-Math.sin(f*Math.PI)*1.15;if(f<1)requestAnimationFrame(jab);else{
+  weapon.rotation.x=0;const start=victim.position.clone(),t=performance.now();
+  function pop(now2){let k=Math.min(1,(now2-t)/500);victim.position.y=.95+Math.sin(k*Math.PI)*1.7;victim.scale.setScalar(1-.8*k);
+   if(k<1)requestAnimationFrame(pop);else{victim.userData.progress=-1;victim.scale.setScalar(1);setPos(victim);done()}}
   requestAnimationFrame(pop);
- }}
- requestAnimationFrame(thrust);
+ }}requestAnimationFrame(jab);
 }
-function finishMove(p){
- busy=false;rolled=false;selected=null;
- if(p.userData.progress>=28){hint.textContent=COLORS[p.userData.team].name+' jangchisi marraga yetdi!'}
- else hint.textContent='Navbat tugadi. Keyingi jamoa kubik tashlaydi.';
- if(diceValue===6){hint.textContent+=' 6 tushgani uchun yana yurish mumkin!';}
- else current=(current+1)%4;
- updateUI();
+function finish(){
+ busy=false;rolled=false;
+ if(rollValue!==6)current=(current+1)%4;
+ refreshHUD();
 }
-function nextTurn(){busy=false;rolled=false;current=(current+1)%4;updateUI()}
-function reset(){
- current=0;rolled=false;busy=false;selected=null;
- pawns.forEach(p=>{p.userData.progress=-1;p.scale.setScalar(1);p.rotation.set(0,0,0);setPawnPos(p)});
- hint.textContent='Kubikni tashlang, so‘ng yuradigan jangchini tanlang.';updateUI();
-}
+function nextTurn(){busy=false;rolled=false;current=(current+1)%4;refreshHUD()}
 function animate(){
  requestAnimationFrame(animate);if(!renderer)return;
- const t=clock.getElapsedTime();
- if(scene){const chest=scene.children.find(o=>o.userData&&o.userData.chest);/* reserved */}
+ let t=clock.getElapsedTime();
+ // Idle breathing and a subtle bob; current team gets a bright pulsing floor glow.
+ pawns.forEach(p=>{
+  const d=p.userData,active=d.team===current;
+  p.position.y=.95+Math.sin(t*2.4+d.phase)*.045;
+  p.rotation.y=Math.sin(t*1.2+d.phase)*.08;
+  d.glow.material.opacity=active?(.24+.24*(.5+.5*Math.sin(t*4+d.phase))):0;
+  d.glow.scale.setScalar(active?1.05+.08*Math.sin(t*4+d.phase):1);
+  d.weapon.rotation.z=Math.sin(t*1.8+d.phase)*.045;
+ });
  renderer.render(scene,camera);
 }
 document.getElementById('dice').addEventListener('click',roll);
-document.getElementById('restart').addEventListener('click',reset);
 document.getElementById('start').addEventListener('click',async()=>{
- try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();}catch(e){}
- try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape');}catch(e){}
- started=true;document.getElementById('overlay').style.display='none';updateUI();
- if(innerHeight>innerWidth)hint.textContent='Telefonni yonboshlating. O‘yin gorizontal holatda qulayroq.';
+ try{if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(e){}
+ try{if(screen.orientation&&screen.orientation.lock)await screen.orientation.lock('landscape')}catch(e){}
+ started=true;document.getElementById('overlay').style.display='none';refreshHUD();
 });
-init();updateUI();
+init();
 })();
 </script>
-</body>
-</html>
+</body></html>
